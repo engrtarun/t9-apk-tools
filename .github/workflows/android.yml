@@ -102,9 +102,14 @@ jobs:
           fi
 
           "$apksigner" verify --print-certs "$apk" | tee "$RUNNER_TEMP/apksigner.log"
-          signer="$(sed -n 's/^Signer #1 certificate SHA-256 digest: //p' "$RUNNER_TEMP/apksigner.log" | head -n 1 | tr -d '[:space:]')"
+          # Build-tools versions differ slightly in this line, so match the label and
+          # take everything after the final colon instead of a fixed prefix.
+          signer="$(grep -i 'certificate SHA-256 digest' "$RUNNER_TEMP/apksigner.log" \
+            | head -n 1 | sed 's/.*: *//' | tr -d '[:space:]')"
           if [ -z "$signer" ]; then
             echo "::error::Could not read the signer SHA-256 digest from apksigner."
+            echo "--- apksigner output ---"
+            cat "$RUNNER_TEMP/apksigner.log"
             exit 1
           fi
 
