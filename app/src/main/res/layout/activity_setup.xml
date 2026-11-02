@@ -24,11 +24,11 @@
 
             <ImageButton
                 android:id="@+id/btnBack"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
                 android:background="@drawable/bg_icon_button"
                 android:contentDescription="Back"
-                android:padding="9dp"
+                android:padding="13dp"
                 android:src="@drawable/ic_back"
                 android:tint="@color/text" />
 
@@ -239,38 +239,38 @@
                 <RadioButton
                     android:id="@+id/rbAuto"
                     android:layout_width="match_parent"
-                    android:layout_height="46dp"
+                    android:layout_height="52dp"
                     android:buttonTint="@color/lime"
                     android:text="Auto (recommended)"
                     android:textColor="@color/text"
-                    android:textSize="13sp" />
+                    android:textSize="14sp" />
 
                 <RadioButton
                     android:id="@+id/rbDirect"
                     android:layout_width="match_parent"
-                    android:layout_height="46dp"
+                    android:layout_height="52dp"
                     android:buttonTint="@color/lime"
                     android:text="Direct — ADB grant, instant"
                     android:textColor="@color/text"
-                    android:textSize="13sp" />
+                    android:textSize="14sp" />
 
                 <RadioButton
                     android:id="@+id/rbSettings"
                     android:layout_width="match_parent"
-                    android:layout_height="46dp"
+                    android:layout_height="52dp"
                     android:buttonTint="@color/lime"
                     android:text="Accessibility — Settings UI"
                     android:textColor="@color/text"
-                    android:textSize="13sp" />
+                    android:textSize="14sp" />
 
                 <RadioButton
                     android:id="@+id/rbQs"
                     android:layout_width="match_parent"
-                    android:layout_height="46dp"
+                    android:layout_height="52dp"
                     android:buttonTint="@color/lime"
                     android:text="Quick Settings tile"
                     android:textColor="@color/text"
-                    android:textSize="13sp" />
+                    android:textSize="14sp" />
             </RadioGroup>
 
             <TextView
@@ -318,7 +318,7 @@
             <SeekBar
                 android:id="@+id/seekOffDelay"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="48dp"
                 android:layout_marginTop="4dp"
                 android:max="10"
                 android:progress="1"
@@ -339,8 +339,9 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:gravity="center_vertical"
-                android:paddingTop="10dp"
-                android:paddingBottom="10dp">
+                android:minHeight="60dp"
+                android:paddingTop="12dp"
+                android:paddingBottom="12dp">
 
                 <LinearLayout
                     android:layout_width="0dp"
@@ -376,8 +377,9 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:gravity="center_vertical"
-                android:paddingTop="10dp"
-                android:paddingBottom="10dp">
+                android:minHeight="60dp"
+                android:paddingTop="12dp"
+                android:paddingBottom="12dp">
 
                 <LinearLayout
                     android:layout_width="0dp"
@@ -413,7 +415,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:gravity="center_vertical"
-                android:paddingTop="10dp">
+                android:minHeight="60dp"
+                android:paddingTop="12dp">
 
                 <LinearLayout
                     android:layout_width="0dp"
@@ -487,7 +490,7 @@
             <SeekBar
                 android:id="@+id/seekQsX"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="48dp"
                 android:max="100"
                 android:progress="12"
                 android:progressBackgroundTint="@color/stroke"
@@ -522,7 +525,7 @@
             <SeekBar
                 android:id="@+id/seekQsY"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="48dp"
                 android:max="100"
                 android:progress="20"
                 android:progressBackgroundTint="@color/stroke"
@@ -570,7 +573,7 @@
                 android:textIsSelectable="true"
                 android:text="adb shell pm grant dev.t9.apktools android.permission.WRITE_SECURE_SETTINGS"
                 android:textColor="@color/lime"
-                android:textSize="10sp" />
+                android:textSize="11sp" />
 
             <TextView
                 android:id="@+id/btnCopyAdb"
@@ -580,7 +583,9 @@
                 android:text="COPY COMMAND" />
         </LinearLayout>
 
-        <LinearLayout style="@style/T9Card">
+        <LinearLayout
+            style="@style/T9Card"
+            android:background="@drawable/bg_card_danger">
 
             <TextView
                 style="@style/T9Label"
@@ -619,6 +624,6 @@
             android:gravity="center"
             android:text="T9 APK Tools 1.0.0"
             android:textColor="@color/muted_dim"
-            android:textSize="9sp" />
+            android:textSize="10sp" />
     </LinearLayout>
 </androidx.core.widget.NestedScrollView>
