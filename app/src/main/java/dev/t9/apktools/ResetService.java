@@ -74,6 +74,14 @@ public class ResetService extends Service {
         boolean manual = intent == null || intent.getBooleanExtra(EXTRA_MANUAL, true);
 
         if (ACTION_CANCEL.equals(action)) {
+            /* A reset is a sequence of radio toggles. Stopping the service in the
+               middle would drop the wake lock and the foreground state while the
+               engine is still between "airplane on" and "airplane off", which can
+               leave the phone without mobile data. Let the run finish instead. */
+            if (running) {
+                LogStore.add(LogStore.WARN, "Reset in progress — cancel ignored");
+                return START_STICKY;
+            }
             startForegroundCompat(Notifications.running(this, "Cancelling timer"));
             LogStore.add(LogStore.INFO, "Timer cancelled");
             stopTimer();
@@ -240,6 +248,9 @@ public class ResetService extends Service {
     }
 
     private void stopTimer() {
+        if (running) {
+            return;
+        }
         handler.removeCallbacks(tick);
         Prefs.setTargetAt(this, 0L);
         Prefs.setBusy(this, false);
@@ -258,7 +269,10 @@ public class ResetService extends Service {
     @Override
     public void onDestroy() {
         handler.removeCallbacks(tick);
-        releaseWakeLock();
+        if (!running) {
+            releaseWakeLock();
+            Prefs.setBusy(this, false);
+        }
         if (Prefs.targetAt(this) > System.currentTimeMillis()) {
             ResetScheduler.schedule(this, Prefs.targetAt(this));
         }

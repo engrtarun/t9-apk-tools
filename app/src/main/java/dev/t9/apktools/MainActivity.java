@@ -132,7 +132,10 @@ public class MainActivity extends AppCompatActivity {
         if (isFinishing() || isDestroyed()) {
             return;
         }
-        runOnUiThread(this::renderIpCard);
+        runOnUiThread(() -> {
+            renderIpCard();
+            maybeAutoCheckIp();
+        });
     }
 
     private void bindViews() {
@@ -621,7 +624,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void maybeAutoCheckIp() {
-        if (Prefs.busy(this)) {
+        if (Prefs.busy(this) || !IpHistory.isLoaded()) {
             return;
         }
         IpHistory.Entry latest = IpHistory.newest(this);

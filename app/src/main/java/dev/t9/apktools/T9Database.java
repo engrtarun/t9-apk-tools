@@ -46,6 +46,10 @@ public final class T9Database extends SQLiteOpenHelper {
 
     private static volatile T9Database instance;
 
+    /** Counts writes so retention runs periodically instead of on every line. */
+    private final java.util.concurrent.atomic.AtomicInteger writeCount =
+            new java.util.concurrent.atomic.AtomicInteger();
+
     public static T9Database get(Context context) {
         if (instance == null) {
             synchronized (T9Database.class) {
@@ -258,7 +262,7 @@ public final class T9Database extends SQLiteOpenHelper {
         getWritableDatabase().delete("run", null, null);
     }
 
-    /** Best three-hour window by change rate, or null when there is not enough data. */
+    /** Best local three-hour block by change rate, or null when there is not enough data. */
     public static final class Window {
         public final int startHour;
         public final int runs;
@@ -272,14 +276,15 @@ public final class T9Database extends SQLiteOpenHelper {
     }
 
     public Window bestWindow() {
+        long offset = java.util.TimeZone.getDefault().getOffset(System.currentTimeMillis());
         Cursor cursor = getReadableDatabase().rawQuery(
-                "SELECT (at/3600000)%24 AS h, COUNT(*), SUM(changed)"
+                "SELECT ((at + " + offset + ")/10800000)%8 AS b, COUNT(*), SUM(changed)"
                         + " FROM run WHERE ok=1"
-                        + " GROUP BY h HAVING COUNT(*) >= 2"
+                        + " GROUP BY b HAVING COUNT(*) >= 2"
                         + " ORDER BY (SUM(changed)*1.0/COUNT(*)) DESC, COUNT(*) DESC LIMIT 1", null);
         try {
             if (cursor.moveToFirst()) {
-                return new Window(cursor.getInt(0), cursor.getInt(1), cursor.getInt(2));
+                return new Window(cursor.getInt(0) * 3, cursor.getInt(1), cursor.getInt(2));
             }
         } finally {
             cursor.close();
@@ -390,18 +395,30 @@ public final class T9Database extends SQLiteOpenHelper {
     /* ---------- maintenance ---------- */
 
     private void prune() {
-        // Kept deliberately simple: the id window is monotonic, so this is an
-        // index range delete rather than a table scan.
+        /* Retention is exact enough without running five write transactions on
+           every single log line. Prune every 32 writes, vacuum every 128. */
+        int writes = writeCount.incrementAndGet();
+        if ((writes & 31) != 0) {
+            return;
+        }
         SQLiteDatabase db = getWritableDatabase();
-        db.execSQL("DELETE FROM ip_check WHERE id <= (SELECT MAX(id) - " + KEEP_CHECKS
-                + " FROM ip_check)");
-        db.execSQL("DELETE FROM run WHERE id <= (SELECT MAX(id) - " + KEEP_RUNS
-                + " FROM run)");
-        db.execSQL("DELETE FROM event WHERE id <= (SELECT MAX(id) - " + KEEP_EVENTS
-                + " FROM event)");
+        db.beginTransaction();
         try {
-            db.execSQL("PRAGMA incremental_vacuum(16)");
-        } catch (Exception ignored) {
+            db.execSQL("DELETE FROM ip_check WHERE id <= (SELECT MAX(id) - " + KEEP_CHECKS
+                    + " FROM ip_check)");
+            db.execSQL("DELETE FROM run WHERE id <= (SELECT MAX(id) - " + KEEP_RUNS
+                    + " FROM run)");
+            db.execSQL("DELETE FROM event WHERE id <= (SELECT MAX(id) - " + KEEP_EVENTS
+                    + " FROM event)");
+            db.setTransactionSuccessful();
+        } finally {
+            db.endTransaction();
+        }
+        if ((writes & 127) == 0) {
+            try {
+                db.execSQL("PRAGMA incremental_vacuum(16)");
+            } catch (Exception ignored) {
+            }
         }
     }
 }

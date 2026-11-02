@@ -9,6 +9,7 @@ import org.json.JSONObject;
 
 import java.util.ArrayDeque;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Activity log backed by SQLite.
@@ -31,7 +32,9 @@ public final class LogStore {
     private static final ArrayDeque<Item> BUFFER = new ArrayDeque<>(MAX);
 
     private static Context appContext;
-    private static int version;
+    private static volatile int version;
+    private static volatile long clearCutoff;
+    private static final AtomicBoolean PENDING = new AtomicBoolean();
     private static volatile Runnable listener;
 
     private LogStore() {
@@ -52,11 +55,30 @@ public final class LogStore {
     public static void init(Context context) {
         appContext = context.getApplicationContext();
         App.io().execute(() -> {
+            int generation;
+            synchronized (LOCK) {
+                generation = version;
+            }
             List<Item> rows = T9Database.get(appContext).recentEvents(MAX);
             synchronized (LOCK) {
-                BUFFER.clear();
-                for (int i = rows.size() - 1; i >= 0; i--) {
-                    BUFFER.addLast(rows.get(i));
+                if (version == generation) {
+                    BUFFER.clear();
+                    for (int i = rows.size() - 1; i >= 0; i--) {
+                        BUFFER.addLast(rows.get(i));
+                    }
+                } else if (!BUFFER.isEmpty()) {
+                    /* Lines were logged while the read was in flight (alarm start,
+                       reset progress). Keep them and prepend only older rows. */
+                    long head = BUFFER.peekFirst().at;
+                    for (int i = rows.size() - 1; i >= 0; i--) {
+                        Item item = rows.get(i);
+                        if (item.at < head) {
+                            BUFFER.addFirst(item);
+                        }
+                    }
+                    while (BUFFER.size() > MAX) {
+                        BUFFER.removeLast();
+                    }
                 }
                 version++;
             }
@@ -79,8 +101,12 @@ public final class LogStore {
         }
         notifyListener();
         final Context context = appContext;
-        App.io().execute(() -> T9Database.get(context)
-                .insertEvent(item.at, item.level, item.message));
+        App.io().execute(() -> {
+            if (item.at < clearCutoff) {
+                return;
+            }
+            T9Database.get(context).insertEvent(item.at, item.level, item.message);
+        });
     }
 
     public static JSONArray items() {
@@ -105,6 +131,7 @@ public final class LogStore {
     }
 
     public static void clear(Context context) {
+        clearCutoff = System.currentTimeMillis();
         synchronized (LOCK) {
             BUFFER.clear();
             version++;
@@ -132,9 +159,18 @@ public final class LogStore {
     }
 
     private static void notifyListener() {
-        Runnable runnable = listener;
-        if (runnable != null) {
-            MAIN.post(runnable);
+        if (listener == null) {
+            return;
         }
+        if (!PENDING.compareAndSet(false, true)) {
+            return;
+        }
+        MAIN.post(() -> {
+            PENDING.set(false);
+            Runnable runnable = listener;
+            if (runnable != null) {
+                runnable.run();
+            }
+        });
     }
 }

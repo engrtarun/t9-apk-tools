@@ -3,6 +3,31 @@
 All notable changes to T9 APK Tools are recorded here. The project follows
 [Semantic Versioning](https://semver.org/).
 
+## [1.1.1] - 2026-11-02
+
+Hardening pass on the new storage layer, from a second code review.
+
+### Fixed
+
+- Cancelling the timer while a reset is mid-flight is now ignored. Dropping the
+  foreground service and wake lock between "airplane on" and "airplane off"
+  could leave the phone without mobile data.
+- Cold-start log and IP history loads no longer overwrite lines written while
+  the database read was in flight (alarm start, reset progress).
+- Clearing the log can no longer resurrect rows from writes that were already
+  queued.
+- The "best window" insight now uses local time and groups data into real
+  three-hour blocks instead of UTC hours.
+- The log version counter is volatile, so the UI can no longer miss an update
+  and stay stale for the session.
+- Log listeners are coalesced: one UI rebuild per batch of lines instead of one
+  per line.
+
+### Changed
+
+- SQLite maintenance is batched: retention runs every 32 writes and the
+  incremental vacuum every 128, instead of five write transactions per log line.
+
 ## [1.1.0] - 2026-11-02
 
 History, storage and lock-screen fixes.

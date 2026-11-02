@@ -12,7 +12,7 @@ a Jio hotspot session request a new public IP.
 - Android 8.0+ (minSdk 26), target and compile SDK 34
 - Native Java 17, no root, no Play Store listing
 - Download: [APK](https://engrtarun.github.io/t9-apk-tools/download/t9-apk-tools.apk) and [version.json](https://engrtarun.github.io/t9-apk-tools/download/version.json)
-- Releases: [v1.0.0 APK](https://github.com/engrtarun/t9-apk-tools/releases/download/v1.0.0/t9-apk-tools.apk) · [all releases](https://github.com/engrtarun/t9-apk-tools/releases)
+- Releases: [latest APK](https://github.com/engrtarun/t9-apk-tools/releases/latest) · [all releases](https://github.com/engrtarun/t9-apk-tools/releases)
 
 ## What it is
 

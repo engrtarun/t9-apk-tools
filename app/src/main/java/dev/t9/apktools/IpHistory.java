@@ -5,6 +5,7 @@ import android.content.Context;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Public-IP ledger, stored in SQLite and mirrored into a 12-entry cache so the
@@ -34,6 +35,8 @@ public final class IpHistory {
     private static final android.os.Handler MAIN =
             new android.os.Handler(android.os.Looper.getMainLooper());
     private static boolean loaded;
+    private static volatile long clearCutoff;
+    private static final AtomicBoolean PENDING = new AtomicBoolean();
     private static Context appContext;
     private static volatile Runnable listener;
 
@@ -61,9 +64,23 @@ public final class IpHistory {
         App.io().execute(() -> {
             List<T9Database.IpRow> rows = T9Database.get(appContext).recentIpChecks(DB_LIMIT);
             synchronized (LOCK) {
-                CACHE.clear();
-                for (T9Database.IpRow row : rows) {
-                    CACHE.add(new Entry(row.at, row.ip, row.kind));
+                if (CACHE.isEmpty()) {
+                    for (T9Database.IpRow row : rows) {
+                        CACHE.add(new Entry(row.at, row.ip, row.kind));
+                    }
+                } else {
+                    /* A reading was stored while this query was running. Keep the
+                       live entries and append only rows older than the tail. */
+                    long oldest = CACHE.get(CACHE.size() - 1).at;
+                    for (int i = rows.size() - 1; i >= 0; i--) {
+                        T9Database.IpRow row = rows.get(i);
+                        if (row.at < oldest) {
+                            CACHE.add(new Entry(row.at, row.ip, row.kind));
+                        }
+                    }
+                    while (CACHE.size() > CACHE_SIZE) {
+                        CACHE.remove(CACHE.size() - 1);
+                    }
                 }
                 loaded = true;
             }
@@ -71,15 +88,30 @@ public final class IpHistory {
         });
     }
 
+    public static boolean isLoaded() {
+        synchronized (LOCK) {
+            return loaded;
+        }
+    }
+
     public static void setListener(Runnable runnable) {
         listener = runnable;
     }
 
     private static void notifyListener() {
-        Runnable runnable = listener;
-        if (runnable != null) {
-            MAIN.post(runnable);
+        if (listener == null) {
+            return;
         }
+        if (!PENDING.compareAndSet(false, true)) {
+            return;
+        }
+        MAIN.post(() -> {
+            PENDING.set(false);
+            Runnable runnable = listener;
+            if (runnable != null) {
+                runnable.run();
+            }
+        });
     }
 
     /** Newest first. Returns a copy, never the live cache. */
@@ -139,7 +171,12 @@ public final class IpHistory {
         }
         final String finalKind = kind;
         final long finalAt = at;
-        App.io().execute(() -> T9Database.get(app).insertIpCheck(finalAt, ip, finalKind));
+        App.io().execute(() -> {
+            if (finalAt < clearCutoff) {
+                return;
+            }
+            T9Database.get(app).insertIpCheck(finalAt, ip, finalKind);
+        });
     }
 
     public static Entry newest(Context context) {
@@ -184,6 +221,7 @@ public final class IpHistory {
     }
 
     public static void clear(Context context) {
+        clearCutoff = System.currentTimeMillis();
         synchronized (LOCK) {
             CACHE.clear();
         }
