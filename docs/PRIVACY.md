@@ -4,7 +4,7 @@ T9 APK Tools is a local utility. There is no account, no analytics service, no
 advertising SDK, and no project-operated backend. The app does not sell or share
 data, and it does not try to identify you.
 
-This note describes what the current app (`dev.t9.apktools`, version 1.0.x)
+This note describes what the current app (`dev.t9.apktools`, version 1.1.x)
 actually does. It is a plain-language engineering note, not a legal compliance
 statement.
 
@@ -13,7 +13,7 @@ statement.
 - No accounts, ads, analytics, telemetry, or crash reporting.
 - The app's own network calls go only to three public-IP endpoints over HTTPS.
 - Logs and settings stay in the app's private storage on the phone.
-- The log holds the last 120 entries and can be cleared in the app.
+- The activity log keeps the newest 300 events; the main screen renders 120.
 - Accessibility window content is inspected only while a reset runs. It is not
   stored and not transmitted.
 - The optional ADB grant can be revoked, and uninstalling removes the app, its
@@ -64,24 +64,29 @@ app's networking code.
 
 ## Data stored on the phone
 
-Everything is in the app's private `SharedPreferences` files. No external
-storage, no database server, and no cloud backup is requested.
+Settings live in the app's private `SharedPreferences` file (`t9_prefs`).
+History lives in one SQLite database, `t9.db`, in the same private directory.
+No external storage, no database server, and no cloud backup is requested.
 
 | Data | Location | Why | Retention |
 | --- | --- | --- | --- |
 | Preferences: duration, engine, off delay, Quick Settings percentages, repeat, wake screen, IP verification, hotspot restore, armed target time | `t9_prefs` | Remember your setup and restore a timer | Until you clear data or uninstall |
 | Last result: success flag, changed flag, message, before/after IP, timestamp | `t9_prefs` | Show the result card after a run | Until replaced, cleared, or uninstalled |
-| Activity log: timestamp, severity, message, engine, addresses, errors | `t9_log` (JSON array) | Let you see what happened | Last 120 entries; clearable |
+| Activity log: timestamp, severity, message, engine, addresses, errors | SQLite `event` table in `t9.db` | Let you see what happened | Newest 300 rows; `CLEAR` deletes them |
+| Reset runs: timestamp, engine, duration, before/after IP, result | SQLite `run` table in `t9.db` | History screen and change rate | Newest 150 rows |
+| IP readings: timestamp, address, kind (`auto`, `manual`, `before`, `after`) | SQLite `ip_check` table in `t9.db` | Public IP card and comparison | Newest 80 rows |
 | One-time prompt flags: notification asked, accessibility hint shown | `t9_prefs` | Avoid repeating the same dialog | Until you clear data or uninstall |
 
 The manifest sets `android:allowBackup="false"`, so the app does not ask Android
-to back up its preferences or logs.
+to back up its preferences or its database.
 
-The log is a ring buffer: `LogStore.add()` removes the oldest entry when the
-array exceeds 120. The main screen renders the newest 10; the stored log still
-holds up to 120. **CLEAR** writes `[]` to the log. **RESET ALL SETTINGS & LOGS**
-clears both preferences and the log. Android's **Clear storage** does the same
-at the system level.
+The log is bounded, not a ring buffer in memory: `T9Database` keeps the newest
+300 `event` rows, 150 `run` rows and 80 `ip_check` rows, then prunes. The main
+screen renders the newest 10 events; the ACTIVITY panel can scroll through 120.
+**CLEAR** deletes `event` rows. **RESET ALL SETTINGS & LOGS** resets preferences
+and deletes `event` rows, but leaves `run` and `ip_check`; History's own
+**CLEAR** deletes `run` rows only. Android's **Clear storage** or an uninstall
+removes the whole database.
 
 Public IP addresses are not account identifiers, but they can identify a
 network or a household. Treat them as potentially personal. If you paste a log
@@ -186,5 +191,5 @@ exploit details.
 
 This note is kept with the app's documentation. If the app's data handling
 changes, the note should change in the same pull request. The current behavior
-described here is for version 1.0.x. Documentation corrections are welcome via
+described here is for version 1.1.x. Documentation corrections are welcome via
 the same issue tracker.

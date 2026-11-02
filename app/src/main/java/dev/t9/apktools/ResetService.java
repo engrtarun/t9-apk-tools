@@ -155,7 +155,7 @@ public class ResetService extends Service {
 
         final Context app = getApplicationContext();
         final long startedAt = System.currentTimeMillis();
-        App.io().execute(() -> {
+        App.runIo(() -> {
             ResetEngine.Result result;
             try {
                 result = ResetEngine.run(app, (level, message) -> {
@@ -194,7 +194,7 @@ public class ResetService extends Service {
         final String message = result.message;
         final String engine = result.strategy;
         final Context app = getApplicationContext();
-        App.io().execute(() -> T9Database.get(app)
+        App.runIo(() -> T9Database.get(app)
                 .insertRun(finishedAt, success, changed, beforeIp, afterIp,
                         engine, duration, message));
 

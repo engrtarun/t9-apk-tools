@@ -199,7 +199,7 @@ svg { display: block; }
   letter-spacing: -0.005em;
   text-decoration: none;
   cursor: pointer;
-  transition: background-color 0.16s ease, border-color 0.16s ease, color 0.16s ease;
+  transition: background-color 0.16s ease, border-color 0.16s ease, color 0.16s ease, transform 0.16s ease;
 }
 
 .btn .icon { width: 17px; height: 17px; }
@@ -236,6 +236,7 @@ svg { display: block; }
   z-index: 80;
   background: var(--bg);
   border-bottom: 1px solid var(--border);
+  transition: background-color 0.2s ease, border-color 0.2s ease;
 }
 
 .header-inner {
@@ -1592,6 +1593,7 @@ h1 { max-width: 14ch; }
   display: inline-flex;
   align-items: center;
   gap: 3px;
+  min-height: 44px;
   color: var(--muted);
   font-family: var(--font-mono);
   font-size: 10px;
@@ -1660,7 +1662,7 @@ h1 { max-width: 14ch; }
 .build-state {
   color: var(--muted);
   font-family: var(--font-mono);
-  font-size: 8.5px;
+  font-size: 10px;
   letter-spacing: 0.03em;
   text-align: right;
   line-height: 1.45;
@@ -1706,7 +1708,7 @@ h1 { max-width: 14ch; }
 .meta-row dt {
   color: var(--muted);
   font-family: var(--font-mono);
-  font-size: 8px;
+  font-size: 9px;
   letter-spacing: 0.1em;
   line-height: 1.6;
   text-transform: uppercase;
@@ -1766,14 +1768,12 @@ h1 { max-width: 14ch; }
 .manifest-foot code {
   flex: 1 1 auto;
   min-width: 0;
-  max-width: 14ch;
   color: #DCE9D2;
   font-family: var(--font-mono);
   font-size: 10px;
   line-height: 1.5;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 
 .manifest-foot .copy-btn { flex: 0 0 auto; }
@@ -2008,6 +2008,97 @@ h1 { max-width: 14ch; }
   transition: opacity 0.5s ease, transform 0.5s ease;
 }
 
+/* Motion system — entrance, scroll reveal, and micro-interactions.
+   All motion is opacity/transform only; reduced motion disables everything. */
+@keyframes t9-rise {
+  from { opacity: 0; transform: translate3d(0, 16px, 0); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes t9-phone-in {
+  from { opacity: 0; transform: translate3d(0, 26px, 0) scale(0.985); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes t9-note-in {
+  from { opacity: 0; transform: translate3d(0, 8px, 0); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes t9-ring {
+  from { --ring-fill: 0%; }
+  to   { --ring-fill: 96.8%; }
+}
+@keyframes t9-faq-open {
+  from { opacity: 0; transform: translate3d(0, -4px, 0); }
+  to   { opacity: 1; transform: none; }
+}
+
+@property --ring-fill {
+  syntax: '<percentage>';
+  inherits: false;
+  initial-value: 96.8%;
+}
+
+html { scroll-behavior: smooth; }
+
+/* Hero entrance */
+.js .hero-copy > :nth-child(1) { animation: t9-rise 620ms cubic-bezier(.22,1,.36,1) 80ms both; }
+.js .hero-copy > :nth-child(2) { animation: t9-rise 620ms cubic-bezier(.22,1,.36,1) 150ms both; }
+.js .hero-copy > :nth-child(3) { animation: t9-rise 620ms cubic-bezier(.22,1,.36,1) 220ms both; }
+.js .hero-copy > :nth-child(4) { animation: t9-rise 620ms cubic-bezier(.22,1,.36,1) 290ms both; }
+.js .hero-copy > :nth-child(5) { animation: t9-rise 620ms cubic-bezier(.22,1,.36,1) 360ms both; }
+.js .hero-mock { animation: t9-phone-in 820ms cubic-bezier(.22,1,.36,1) 260ms both; }
+.js .mock-note--top { animation: t9-note-in 520ms ease 820ms both; }
+.js .mock-note--bottom { animation: t9-note-in 520ms ease 900ms both; }
+
+/* Ring draw */
+.ring { background: conic-gradient(from -90deg, var(--lime) 0 var(--ring-fill, 96.8%), #2A3622 var(--ring-fill, 96.8%) 100%); }
+.js .ring { animation: t9-ring 1200ms cubic-bezier(.22,1,.36,1) 420ms both; }
+
+/* Section heading rule that grows in */
+.section-head .kicker::after {
+  content: '';
+  flex: 1 1 auto;
+  height: 1px;
+  margin-left: 12px;
+  background: linear-gradient(90deg, rgba(200,255,46,0.45), transparent);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 700ms cubic-bezier(.22,1,.36,1) 120ms;
+}
+.section-head.is-visible .kicker::after { transform: scaleX(1); }
+
+/* Reveal: stagger siblings */
+.js .reveal-pending.is-visible { transition-delay: calc(var(--stagger-i, 0) * 55ms); }
+
+/* FAQ open */
+.faq-item[open] .faq-answer { animation: t9-faq-open 260ms ease both; }
+
+/* Header scrolled state */
+.site-header.is-scrolled {
+  background: rgba(10,13,9,0.88);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+/* Micro-interactions */
+.btn--lime .icon { transition: transform 0.16s ease; }
+.btn--lime:hover .icon { transform: translateX(2px); }
+.btn:hover { transform: translateY(-1px); }
+.btn:active { transform: translateY(0) scale(0.99); }
+
+@media (hover: hover) {
+  .engine, .limit { transition: transform 0.22s ease, border-color 0.22s ease; }
+  .engine:hover, .limit:hover { transform: translateY(-2px); }
+}
+
+/* Reduced motion: kill everything added above */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .js .hero-copy > *, .js .hero-mock, .js .mock-note--top, .js .mock-note--bottom,
+  .js .ring { animation: none !important; }
+  .section-head .kicker::after { transform: scaleX(1); transition: none; }
+  .btn:hover { transform: none; }
+}
+
 /* Responsive */
 @media (max-width: 1180px) {
   .mock-note { display: none; }
@@ -2140,9 +2231,9 @@ h1 { max-width: 14ch; }
 
 
 .copy-btn--icon {
-  width: 28px;
-  height: 28px;
-  min-height: 28px;
+  width: 44px;
+  height: 44px;
+  min-height: 44px;
   padding: 0;
   flex: none;
 }
@@ -2273,7 +2364,6 @@ h1 { max-width: 14ch; }
   .download-copy { padding: 14px 16px; gap: 8px; }
   .manifest { padding: 14px 16px; gap: 6px; }
   .meta-row { padding: 4px 0; grid-template-columns: 64px minmax(0, 1fr); }
-  .meta-row dt { font-size: 7.5px; }
   .meta-row dd { font-size: 11.5px; }
   .meta-row dd code { font-size: 10px; }
   .download-lede { font-size: 10px; }

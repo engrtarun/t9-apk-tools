@@ -105,16 +105,26 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-        bindViews();
-        bindChips();
-        bindActions();
+        try {
+            setContentView(R.layout.activity_main);
+            bindViews();
+            bindChips();
+            bindActions();
 
-        ring.setProgress(1f);
-        refreshAccessChips();
-        syncResultCard();
-        renderLogs(true);
-        updateUi();
+            ring.setProgress(1f);
+            refreshAccessChips();
+            syncResultCard();
+            renderLogs(true);
+            updateUi();
+            reportLastCrash();
+        } catch (Throwable error) {
+            /* A launch crash is the one failure a user cannot report from inside
+               the app. Draw a minimal recovery screen instead of dying, and keep
+               the full trace on disk for the Copy button. */
+            App.noteFailure("MainActivity.onCreate", error);
+            showStartupFailure(error);
+            return;
+        }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
                 && ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
@@ -126,6 +136,59 @@ public class MainActivity extends AppCompatActivity {
 
         LogStore.setListener(() -> renderLogs(false));
         IpHistory.setListener(this::onIpHistoryLoaded);
+    }
+
+    /**
+     * Last-resort screen used when the normal layout cannot be built. It still
+     * gives the user a way to send the exact stack trace back.
+     */
+    private void showStartupFailure(Throwable error) {
+        java.io.StringWriter writer = new java.io.StringWriter();
+        error.printStackTrace(new java.io.PrintWriter(writer));
+        String trace = writer.toString();
+        try {
+            App.noteFailure("startup screen", error);
+            LinearLayout box = new LinearLayout(this);
+            box.setOrientation(LinearLayout.VERTICAL);
+            int pad = dp(24);
+            box.setPadding(pad, pad, pad, pad);
+
+            TextView title = new TextView(this);
+            title.setText("T9 APK Tools could not start");
+            title.setTextSize(20);
+            title.setTextColor(ContextCompat.getColor(this, R.color.text));
+            box.addView(title);
+
+            TextView body = new TextView(this);
+            body.setText("The main screen failed to load. Your settings and history "
+                    + "were not changed.\n\n" + trace);
+            body.setTextSize(12);
+            body.setTextColor(ContextCompat.getColor(this, R.color.muted));
+            body.setPadding(0, dp(12), 0, dp(12));
+            box.addView(body);
+
+            TextView copy = new TextView(this);
+            copy.setText("COPY LOG");
+            copy.setTextSize(13);
+            copy.setGravity(Gravity.CENTER);
+            copy.setMinHeight(dp(48));
+            copy.setTextColor(ContextCompat.getColor(this, R.color.lime));
+            copy.setOnClickListener(v -> {
+                android.content.ClipboardManager clipboard =
+                        (android.content.ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
+                if (clipboard != null) {
+                    clipboard.setPrimaryClip(android.content.ClipData.newPlainText("T9 crash", trace));
+                    Toast.makeText(this, "Crash log copied", Toast.LENGTH_SHORT).show();
+                }
+            });
+            box.addView(copy);
+
+            android.widget.ScrollView scroll = new android.widget.ScrollView(this);
+            scroll.addView(box);
+            setContentView(scroll);
+        } catch (Throwable ignored) {
+            Toast.makeText(this, "T9 APK Tools could not start", Toast.LENGTH_LONG).show();
+        }
     }
 
     private void onIpHistoryLoaded() {
@@ -258,6 +321,7 @@ public class MainActivity extends AppCompatActivity {
         });
 
         tvFooter.setOnClickListener(v -> openHowItWorks());
+        bindBuildLabel();
     }
 
     @Override
@@ -413,6 +477,62 @@ public class MainActivity extends AppCompatActivity {
                 .setNegativeButton("Cancel", null)
                 .setPositiveButton("Open Setup", (dialog, which) ->
                         startActivity(new Intent(this, SetupActivity.class)))
+                .show();
+    }
+
+    /** Shows the stack trace saved by the crash handler on the previous launch. */
+    private void bindBuildLabel() {
+        try {
+            android.content.pm.PackageInfo info = getPackageManager()
+                    .getPackageInfo(getPackageName(), 0);
+            TextView build = findViewById(R.id.tvBuild);
+            build.setText("v" + info.versionName + " (" + info.versionCode
+                    + ") · No root · No ads · No analytics");
+        } catch (Exception ignored) {
+        }
+    }
+
+    private void reportLastCrash() {
+        java.io.File file = new java.io.File(getFilesDir(), "last-crash.txt");
+        if (!file.exists()) {
+            return;
+        }
+        String text;
+        try {
+            byte[] raw = new byte[(int) file.length()];
+            java.io.FileInputStream in = new java.io.FileInputStream(file);
+            try {
+                int read = in.read(raw);
+                text = new String(raw, 0, Math.max(0, read),
+                        java.nio.charset.StandardCharsets.UTF_8);
+            } finally {
+                in.close();
+            }
+        } catch (Exception e) {
+            file.delete();
+            return;
+        }
+        file.delete();
+        if (text.isEmpty()) {
+            return;
+        }
+        if (text.length() > 1400) {
+            text = text.substring(0, 1400) + "\n…";
+        }
+        final String report = text;
+        new MaterialAlertDialogBuilder(this)
+                .setTitle("Last launch crashed")
+                .setMessage(report)
+                .setNegativeButton("Close", null)
+                .setPositiveButton("Copy log", (dialog, which) -> {
+                    android.content.ClipboardManager clipboard =
+                            (android.content.ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
+                    if (clipboard != null) {
+                        clipboard.setPrimaryClip(
+                                android.content.ClipData.newPlainText("T9 crash", report));
+                        Toast.makeText(this, "Crash log copied", Toast.LENGTH_SHORT).show();
+                    }
+                })
                 .show();
     }
 

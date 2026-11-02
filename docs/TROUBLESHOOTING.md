@@ -75,10 +75,10 @@ Work through the engine path:
    grant is present but the OEM ignores direct writes, Auto fails at Direct; it
    does not fall through. Select **Accessibility — Settings UI** or **Quick
    Settings tile**.
-3. **Is the keyguard locked?** The current build checks the keyguard before
-   engine selection. It waits up to 90 seconds, posts **Unlock to finish the
-   reset**, then gives up with `Phone stayed locked`. This applies to Direct
-   too.
+3. **Is the keyguard locked?** This only blocks the accessibility engines. They
+   wait up to 90 seconds, post **Unlock to finish the reset**, then give up with
+   `Phone stayed locked`. Direct skips this wait and writes the secure setting
+   with the screen off or locked, OEM permitting.
 4. **Is this a Quick Settings layout problem?** The tile may not be on the first
    page, or the label may not contain `airplane`/`flight mode`. Put the tile in
    the top-left and calibrate, or use the Settings engine.
@@ -379,18 +379,19 @@ means the package is not installed for that user.
 
 ## Phone stayed locked
 
-`ResetEngine` checks the keyguard before selecting an engine:
+The accessibility engines check the keyguard before they start:
 
-- It waits up to 90 seconds.
-- It posts the high-importance **Unlock to finish the reset** notification.
-- If the keyguard is still locked, it returns `Phone stayed locked. Unlock it
+- They wait up to 90 seconds.
+- They post the high-importance **Unlock to finish the reset** notification.
+- If the keyguard is still locked, they return `Phone stayed locked. Unlock it
   and run again.`
 
-There is no accessibility or Direct bypass for the keyguard in this build.
-Fix it by unlocking the phone when the timer is due, enabling **Wake screen and
-wait for unlock**, or running the reset while the phone is already unlocked.
-If the screen wake option is off, the phone may not light up to show the
-notification.
+Direct does not check the keyguard; it writes the secure setting with the screen
+off or locked, though some OEMs block that write in the background. For the
+accessibility engines, unlock the phone when the timer is due, enable **Wake
+screen and wait for unlock**, or run the reset while the phone is already
+unlocked. If the screen wake option is off, the phone may not light up to show
+the notification.
 
 ## Network did not come back in 60 s
 
@@ -487,6 +488,9 @@ Include:
 - whether the ADB grant is present and the output of the `dumpsys` check;
 - whether accessibility is on and connected;
 - whether the phone was unlocked and the screen on;
+- if the app closed by itself, reopen it and use **Last launch crashed** →
+  **Copy log** (`last-crash.txt`); background failures are in `last-failure.txt`
+  and can be viewed by long-pressing the footer build label;
 - the exact **ACTIVITY** lines around the failure;
 - whether a hotspot was active, and whether hotspot restore was on;
 - steps to reproduce, including the timer duration and whether it was a manual

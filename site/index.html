@@ -12,6 +12,7 @@
   <link rel="canonical" href="https://engrtarun.github.io/t9-apk-tools/">
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="styles.css">
+  <script>document.documentElement.classList.add('js');</script>
   <script src="app.js" defer></script>
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="T9 APK Tools">
@@ -132,7 +133,7 @@
           </div>
           <ul class="chips" aria-label="At a glance">
             <li>Android 8+</li>
-            <li>~2–3 MB APK</li>
+            <li><span data-meta="size">~4 MB</span> APK</li>
             <li>Open source</li>
             <li>Built by Actions</li>
           </ul>
@@ -394,7 +395,7 @@
               <svg class="icon" aria-hidden="true" focusable="false"><use href="#i-download"/></svg>
               <span>Download APK</span>
             </a>
-            <p class="download-note">Sideload only. Android will ask you to allow installs from this browser.</p>
+            <p class="download-note">Sideload only. Android will ask you to allow installs from the app that opens the file — usually your browser or Files.</p>
             <div class="download-links">
               <a href="https://github.com/engrtarun/t9-apk-tools/releases" id="release-link" target="_blank" rel="noopener noreferrer"><span>GitHub Releases</span><span class="ext-arrow" aria-hidden="true">↗</span><span class="sr-only"> (opens in a new tab)</span></a>
               <a href="download/version.json">version.json</a>
@@ -422,10 +423,11 @@
                 <span class="sr-only" data-copy-label>Copy checksum</span>
               </button>
             </div>
-            <p class="download-fallback">Manifest unavailable right now. Use GitHub Releases for the latest signed build.</p>
+            <p class="download-fallback" hidden>Manifest unavailable right now. Use GitHub Releases for the latest signed build.</p>
+            <noscript><p class="download-fallback">This manifest needs JavaScript. The download button still works.</p></noscript>
           </div>
         </div>
-        <p class="download-provenance">Built and signed by GitHub Actions. The signing key is public, so verify the SHA-256 after download.</p>
+        <p class="download-provenance">Built by GitHub Actions from the commit above. The signing key is public, so the signature proves the APK is unmodified — not who built it.</p>
       </div>
     </section>
 

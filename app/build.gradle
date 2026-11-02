@@ -5,6 +5,17 @@ plugins {
 def versionFile = rootProject.file('VERSION')
 def appVersion = versionFile.exists() ? versionFile.text.trim() : '1.0.0'
 def runNumber = (System.getenv('GITHUB_RUN_NUMBER') ?: '1') as Integer
+
+/* Stable, monotonic code from VERSION (1.1.1 -> 10101). Using the CI run
+   number meant a docs-only push minted a new APK and could leave the Pages
+   build ahead of the tagged release, which blocks a later downgrade install. */
+def versionParts = appVersion.tokenize('.')
+def derivedCode = 0
+if (versionParts.size() >= 3 && versionParts[0].isInteger()
+        && versionParts[1].isInteger() && versionParts[2].isInteger()) {
+    derivedCode = (versionParts[0] as Integer) * 10000 + (versionParts[1] as Integer) * 100 + (versionParts[2] as Integer)
+}
+def appVersionCode = derivedCode > 0 ? derivedCode : Math.max(1, runNumber)
 def keystorePath = System.getenv('T9_KEYSTORE_PATH')
 def keystoreFile = keystorePath ? new File(keystorePath) : null
 def hasReleaseKey = keystoreFile != null && keystoreFile.exists()
@@ -17,7 +28,7 @@ android {
         applicationId 'dev.t9.apktools'
         minSdk 26
         targetSdk 34
-        versionCode Math.max(1, runNumber)
+        versionCode Math.max(1, appVersionCode)
         versionName appVersion
         vectorDrawables.useSupportLibrary = true
         resourceConfigurations += ['en']
@@ -36,8 +47,10 @@ android {
 
     buildTypes {
         release {
-            minifyEnabled true
-            shrinkResources true
+            // Keep release builds unminified: the APK is small, and a readable
+            // stack trace matters more than a few hundred KB on a sideloaded tool.
+            minifyEnabled false
+            shrinkResources false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'),
                     'proguard-rules.pro'
             // CI decodes the committed community keystore; local builds fall back to debug.

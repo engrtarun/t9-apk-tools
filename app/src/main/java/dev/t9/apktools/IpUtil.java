@@ -61,7 +61,7 @@ public final class IpUtil {
     }
 
     public static void fetchAsync(Consumer<String> callback) {
-        App.io().execute(() -> {
+        App.runIo(() -> {
             String ip = fetch();
             MAIN.post(() -> callback.accept(ip));
         });

@@ -92,7 +92,7 @@ public class HistoryActivity extends AppCompatActivity {
 
     private void load() {
         final String active = filter;
-        App.io().execute(() -> {
+        App.runIo(() -> {
             T9Database db = T9Database.get(this);
             T9Database.Stats stats = db.stats();
             T9Database.Window window = db.bestWindow();
@@ -249,7 +249,7 @@ public class HistoryActivity extends AppCompatActivity {
     }
 
     private void loadTrace(T9Database.RunRow row, LinearLayout trace) {
-        App.io().execute(() -> {
+        App.runIo(() -> {
             List<LogStore.Item> items = T9Database.get(this)
                     .eventsBetween(row.at - 90_000L, row.at + 180_000L, 14);
             runOnUiThread(() -> {
@@ -321,7 +321,7 @@ public class HistoryActivity extends AppCompatActivity {
     }
 
     private void share() {
-        App.io().execute(() -> {
+        App.runIo(() -> {
             StringBuilder builder = new StringBuilder();
             T9Database db = T9Database.get(this);
             T9Database.Stats stats = db.stats();
@@ -366,7 +366,7 @@ public class HistoryActivity extends AppCompatActivity {
                         + "The current IP reading and your settings stay.")
                 .setNegativeButton("Cancel", null)
                 .setPositiveButton("Clear", (dialog, which) -> {
-                    App.io().execute(() -> {
+                    App.runIo(() -> {
                         T9Database.get(this).clearRuns();
                         LogStore.clear(this);
                         runOnUiThread(() -> {

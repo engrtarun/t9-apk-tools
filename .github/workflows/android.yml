@@ -73,7 +73,11 @@ jobs:
           fi
           echo "name=$version" >> "$GITHUB_OUTPUT"
           echo "APP_VERSION=$version" >> "$GITHUB_ENV"
-          echo "Building version $version (code $GITHUB_RUN_NUMBER)."
+          echo "Building version $version."
+          if [[ "$GITHUB_REF" == refs/tags/v* && "$GITHUB_REF_NAME" != "v$version" ]]; then
+            echo "::error::Tag $GITHUB_REF_NAME does not match VERSION (v$version)."
+            exit 1
+          fi
 
       - name: Build release APK
         shell: bash
@@ -123,26 +127,50 @@ jobs:
         shell: bash
         env:
           APP_VERSION: ${{ steps.version.outputs.name }}
-          VERSION_CODE: ${{ github.run_number }}
           SIGNER_SHA256: ${{ steps.verify.outputs.signer }}
           COMMIT_SHA: ${{ github.sha }}
+          GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
           apk="app/build/outputs/apk/release/app-release.apk"
           mkdir -p site/download
           cp "$apk" site/download/t9-apk-tools.apk
 
+          # The manifest must describe the APK it ships, so read the code out of
+          # the built binary instead of trusting a separate number.
+          sdk_root="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-/usr/local/lib/android/sdk}}"
+          aapt2="$(find "$sdk_root/build-tools" -type f -name aapt2 2>/dev/null | sort -V | tail -n 1)"
+          version_code=""
+          if [ -n "$aapt2" ]; then
+            version_code="$("$aapt2" dump badging "$apk" 2>/dev/null \
+              | sed -n "s/.*versionCode='\([0-9]*\)'.*/\1/p" | head -n 1)"
+          fi
+          if [ -z "$version_code" ]; then
+            version_code="$(python3 -c 'import os; p = os.environ["APP_VERSION"].split("."); print(int(p[0]) * 10000 + int(p[1]) * 100 + int(p[2]))')"
+          fi
+
           size_bytes="$(stat -c%s site/download/t9-apk-tools.apk)"
           sha256="$(sha256sum site/download/t9-apk-tools.apk | awk '{print $1}')"
           built_at="$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
           run_url="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
-          release_url="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/releases/tag/v${APP_VERSION}"
+          release_url="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/releases"
+          if curl -fsS -o /dev/null \
+              -H "Authorization: Bearer ${GH_TOKEN}" \
+              -H "Accept: application/vnd.github+json" \
+              "https://api.github.com/repos/${GITHUB_REPOSITORY}/releases/tags/v${APP_VERSION}"; then
+            release_url="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/releases/tag/v${APP_VERSION}"
+          else
+            echo "No published release for v${APP_VERSION} yet; linking the release list."
+          fi
 
+          echo "APP_VERSION_CODE=$version_code" >> "$GITHUB_ENV"
+          export VERSION_CODE="$version_code"
           export SIZE_BYTES="$size_bytes"
           export SHA256="$sha256"
           export BUILT_AT="$built_at"
           export RUN_URL="$run_url"
           export RELEASE_URL="$release_url"
+          echo "Pages manifest: ${APP_VERSION} (code ${version_code}), ${size_bytes} bytes."
 
           python3 - <<'PY'
           import json
@@ -180,7 +208,7 @@ jobs:
             echo "| Item | Value |"
             echo "| --- | --- |"
             echo "| Version | \`${APP_VERSION}\` |"
-            echo "| Version code | \`${GITHUB_RUN_NUMBER}\` |"
+            echo "| Version code | \`${APP_VERSION_CODE}\` |"
             echo "| APK size | \`${APK_SIZE}\` bytes |"
             echo "| SHA-256 | \`${APK_SHA256}\` |"
             echo "| Signer SHA-256 | \`${SIGNER_SHA256}\` |"

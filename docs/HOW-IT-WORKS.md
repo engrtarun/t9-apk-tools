@@ -70,11 +70,12 @@ fires; the alarm is the wake-up mechanism.
    `ACTION_RUN_NOW`.
 5. **Run.** `ResetService.runReset()` sets the busy flag, acquires a 10-minute
    partial wake lock, and calls `ResetEngine.run()` on the app's I/O executor.
-6. **Screen and keyguard.** If "Wake screen" is enabled, `ResetEngine` acquires
-   a `SCREEN_BRIGHT_WAKE_LOCK | ACQUIRE_CAUSES_WAKEUP` for up to 4 minutes. It
+6. **Screen and keyguard.** For the accessibility engines (Settings and Quick
+   Settings), if "Wake screen" is enabled, `ResetEngine` acquires a
+   `SCREEN_BRIGHT_WAKE_LOCK | ACQUIRE_CAUSES_WAKEUP` for up to 4 minutes. It
    then checks `KeyguardManager.isKeyguardLocked()`. If the keyguard is locked,
    it posts a high-importance unlock notification and waits up to 90 seconds.
-   This check happens before engine selection, so it also applies to Direct.
+   Direct skips both steps and runs screen-off or locked, OEM permitting.
 7. **Before IP.** If "Verify public IP" is enabled, `IpUtil.fetch()` tries
    `https://api.ipify.org`, then `https://icanhazip.com`, then
    `https://ifconfig.me/ip`. Each request has a 5-second connect timeout and a
@@ -168,7 +169,7 @@ The UI names differ slightly from the internal strategy values:
 | UI option | Internal value | Mechanism | Screen requirement |
 | --- | --- | --- | --- |
 | Auto (recommended) | `auto` | Direct if granted; otherwise Quick Settings, then Settings UI | Depends on the chosen path |
-| Direct — ADB grant, instant | `direct` | Writes `Settings.Global.AIRPLANE_MODE_ON` | No UI automation; screen can be off if Wake screen is off, but a locked keyguard still pauses the run |
+| Direct — ADB grant, instant | `direct` | Writes `Settings.Global.AIRPLANE_MODE_ON` | No UI automation; screen-off and locked are supported (OEM permitting). A secure lock fails UI automation in seconds. |
 | Accessibility — Settings UI | `settings` | Opens the Airplane mode Settings page and clicks the switch | Unlocked, screen on |
 | Quick Settings tile | `qs` | Opens the Quick Settings shade and clicks the tile, then taps calibrated coordinates if needed | Unlocked, screen on |
 
@@ -198,9 +199,9 @@ Failure modes:
   does not apply to a work-profile copy.
 - **Policy or OEM restriction.** Some managed devices and some manufacturer
   builds ignore direct secure-setting writes.
-- **Keyguard.** The run still waits up to 90 seconds for the keyguard to clear
-  before this engine starts. A screen that is off but not keyguard-locked is
-  fine.
+- **Keyguard.** Direct does not wait for the keyguard. It writes the secure
+  setting with the screen off or locked, though some OEMs block that write in
+  the background.
 
 ### Accessibility Settings engine
 
@@ -470,8 +471,8 @@ address assignment.
 - The IP endpoints are third parties and can be slow, blocked, or wrong.
 - The app does not bypass carrier controls, root the device, or hide the
   connection from the carrier.
-- The current build waits for the keyguard even on Direct; screen-off is
-  supported, keyguard-locked is not.
+- Direct runs screen-off and locked; the accessibility engines need the screen
+  on and the phone unlocked. A secure lock fails UI automation in seconds.
 - The app is sideloaded. It is not on the Play Store.
 
 For setup, see [SETUP.md](SETUP.md). For data handling, see

@@ -61,7 +61,7 @@ public final class IpHistory {
 
     public static void init(Context context) {
         appContext = context.getApplicationContext();
-        App.io().execute(() -> {
+        App.runIo(() -> {
             List<T9Database.IpRow> rows = T9Database.get(appContext).recentIpChecks(DB_LIMIT);
             synchronized (LOCK) {
                 if (CACHE.isEmpty()) {
@@ -122,7 +122,7 @@ public final class IpHistory {
         synchronized (LOCK) {
             if (!loaded) {
                 loaded = true;
-                App.io().execute(() -> {
+                App.runIo(() -> {
                     List<T9Database.IpRow> rows =
                             T9Database.get(appContext).recentIpChecks(DB_LIMIT);
                     synchronized (LOCK) {
@@ -171,7 +171,7 @@ public final class IpHistory {
         }
         final String finalKind = kind;
         final long finalAt = at;
-        App.io().execute(() -> {
+        App.runIo(() -> {
             if (finalAt < clearCutoff) {
                 return;
             }
@@ -226,7 +226,7 @@ public final class IpHistory {
             CACHE.clear();
         }
         final Context app = context.getApplicationContext();
-        App.io().execute(() -> T9Database.get(app).clearIpChecks());
+        App.runIo(() -> T9Database.get(app).clearIpChecks());
     }
 
     public static List<Entry> snapshot() {

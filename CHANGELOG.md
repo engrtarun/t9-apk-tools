@@ -27,6 +27,15 @@ Hardening pass on the new storage layer, from a second code review.
 
 - SQLite maintenance is batched: retention runs every 32 writes and the
   incremental vacuum every 128, instead of five write transactions per log line.
+- Release builds are no longer minified, so a crash produces a readable stack
+  trace and the APK stays easy to inspect.
+- A fatal crash is saved on the phone and shown on the next launch with a
+  "Copy log" button, instead of the app silently closing.
+- Startup failures draw a recovery screen with the same Copy log action, and
+  background failures go to `last-failure.txt` instead of killing the process.
+- The version code now derives from `VERSION` (`1.1.1` → `10101`), so a
+  docs-only push can no longer publish a second APK under the same version
+  name.
 
 ## [1.1.0] - 2026-11-02
 

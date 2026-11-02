@@ -40,7 +40,10 @@ provenance.
    (`5`, `10`, `15`, `20`, `30`, `CUSTOM`), a **START … MIN TIMER** button, a
    **RESET NOW** button, a **REPEAT** switch, two access chips
    (`ACCESSIBILITY OFF/ON`, `ADB DIRECT OFF/ON`), a **PUBLIC IP** card, an
-   **ACTIVITY** log panel, and a **SETUP** button in the top-right.
+   **ACTIVITY** log panel, an **ALL RESETS** button that opens History, and a
+   **SETUP** button in the top-right. History lists every run with before →
+   after, engine, duration, filters (new/same/failed), share and clear, plus
+   expandable log lines.
 
 If you do not see an icon, see
 [App installed but no launcher icon](TROUBLESHOOTING.md#app-installed-but-no-launcher-icon).
@@ -156,7 +159,7 @@ Open **SETUP** → **RESET ENGINE**. The options are:
 | Option | What it does | Needs |
 | --- | --- | --- |
 | **Auto (recommended)** | Direct if granted; otherwise Quick Settings, then Settings UI | Direct grant or accessibility |
-| **Direct — ADB grant, instant** | Writes the Airplane secure setting; no UI automation | One-time ADB grant; the current build still waits for the keyguard |
+| **Direct — ADB grant, instant** | Writes the Airplane secure setting; no UI automation | One-time ADB grant; runs screen-off or locked (OEM permitting) |
 | **Accessibility — Settings UI** | Opens the Airplane mode page and clicks the switch | Accessibility on, phone unlocked |
 | **Quick Settings tile** | Opens the shade and clicks the tile, with percentage fallback | Accessibility on, phone unlocked, tile visible |
 
@@ -335,8 +338,9 @@ Open **SETUP** → **TIMING**.
   3–5 seconds gives the radio time to detach and reattach. A longer pause is
   not a guarantee of a new IP.
 - **Wake screen and wait for unlock** — default on. Accessibility cannot drive
-  a locked screen. The current build also waits for the keyguard before Direct,
-  so keep the phone unlocked around the reset if you can.
+  a locked screen. This wait applies only to the accessibility engines; Direct
+  skips it and runs screen-off or locked, though some OEMs block secure-setting
+  writes in the background.
 - **Verify public IP before and after** — default on. Turning it off removes
   the HTTPS calls, but the app can no longer tell you whether the address
   changed.
@@ -366,8 +370,8 @@ capture a tap for you. Test with **RESET NOW** after changing them.
 3. Tap **START … MIN TIMER**. The button changes to **CANCEL TIMER**, the ring
    counts down, and the persistent notification appears.
 4. If you are using an accessibility-based engine, leave the phone unlocked
-   and the screen available. If you use Direct, the screen can be off, but a
-   locked keyguard still pauses the run for up to 90 seconds.
+   and the screen available. Direct skips that wait and runs screen-off or
+   locked, OEM permitting.
 5. Cancel from the main button or from the notification's **Cancel** action.
 
 The alarm is the reliable wake-up path. The foreground service keeps a visible
@@ -396,7 +400,8 @@ After a run, check:
 
 - the notification title: **IP changed**, **Network reset complete**, or
   **Reset needs attention**;
-- the **PUBLIC IP** card: `CHANGED`, `CURRENT`, or `OFFLINE`;
+- the **PUBLIC IP** card: `CHANGED`, `SAME`, `CURRENT`, `BEFORE`,
+  `NOT CHECKED`, `CHECKING`, or `OFFLINE`;
 - the **ACTIVITY** panel: the 10 most recent entries, with the engine, before
   and after addresses, and any error;
 - **SETUP** status pills, especially if the run says an engine is missing.

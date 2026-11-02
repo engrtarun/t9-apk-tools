@@ -158,8 +158,19 @@
     });
   });
 
-  /* Reveal */
-  var revealTargets = document.querySelectorAll('[data-reveal]');
+  /* Reveal: explicit hooks plus the sections that carry the page rhythm. */
+  var revealTargets = [];
+  function addReveal(selector) {
+    Array.prototype.forEach.call(document.querySelectorAll(selector), function (node) {
+      if (revealTargets.indexOf(node) === -1) revealTargets.push(node);
+    });
+  }
+  addReveal('[data-reveal]');
+  addReveal('.section-head');
+  addReveal('.problem-grid');
+  addReveal('.faq-item');
+  addReveal('.download-provenance');
+
   if ('IntersectionObserver' in window && !reduceMotion.matches && revealTargets.length) {
     var observer = new IntersectionObserver(function (entries) {
       entries.forEach(function (entry) {
@@ -167,9 +178,19 @@
         entry.target.classList.add('is-visible');
         observer.unobserve(entry.target);
       });
-    }, { rootMargin: '0px 0px -8% 0px', threshold: 0.2 });
-    Array.prototype.forEach.call(revealTargets, function (target) {
+    }, { rootMargin: '0px 0px -8% 0px', threshold: 0.15 });
+    revealTargets.forEach(function (target) {
       target.classList.add('reveal-pending');
+      var parent = target.parentElement;
+      if (parent) {
+        var index = 0;
+        Array.prototype.forEach.call(parent.children, function (sibling, i) {
+          if (sibling === target) index = i;
+        });
+        if (index > 0) {
+          target.style.setProperty('--stagger-i', String(Math.min(index, 6)));
+        }
+      }
       var stagger = target.querySelector('[data-motion-stagger]');
       if (stagger) {
         Array.prototype.forEach.call(stagger.children, function (row, index) {
@@ -181,14 +202,32 @@
     if (typeof reduceMotion.addEventListener === 'function') {
       reduceMotion.addEventListener('change', function (event) {
         if (!event.matches) return;
-        Array.prototype.forEach.call(revealTargets, function (target) {
+        revealTargets.forEach(function (target) {
           target.classList.add('is-visible');
           observer.unobserve(target);
         });
       });
     }
   } else {
-    Array.prototype.forEach.call(revealTargets, function (target) { target.classList.add('is-visible'); });
+    revealTargets.forEach(function (target) { target.classList.add('is-visible'); });
+  }
+
+  /* Header state on scroll */
+  var header = document.querySelector('.site-header');
+  if (header) {
+    var headerTick = false;
+    var syncHeader = function () {
+      header.classList.toggle('is-scrolled', window.scrollY > 8);
+    };
+    syncHeader();
+    window.addEventListener('scroll', function () {
+      if (headerTick) return;
+      headerTick = true;
+      window.requestAnimationFrame(function () {
+        headerTick = false;
+        syncHeader();
+      });
+    }, { passive: true });
   }
 
   /* Year */
@@ -209,6 +248,7 @@
     buildState.textContent = value;
     if (state) buildState.setAttribute('data-state', state);
     else buildState.removeAttribute('data-state');
+    if (fallback) fallback.hidden = state !== 'error';
   }
 
   function addVersionQuery(token) {
@@ -265,7 +305,8 @@
 
     if (manifest) manifest.setAttribute('data-loaded', 'true');
 
-    var complete = !!version && !!size && isSha256(sha);
+    var complete = !!version && !!versionCode && !!size && isSha256(sha)
+      && /^[0-9a-f]{7,40}$/i.test(commit) && !!built;
     if (fallback) fallback.hidden = complete;
     addVersionQuery(version || (isSha256(sha) ? sha.slice(0, 12) : ''));
     setBuildState(complete ? 'SIGNED BUILD' : 'MANIFEST UNAVAILABLE', complete ? 'signed' : 'error');
@@ -274,9 +315,16 @@
 
   async function loadVersion() {
     setBuildState('READING VERSION.JSON', 'loading');
+    var options = {
+      cache: 'no-store',
+      headers: { 'Accept': 'application/json' }
+    };
+    if (typeof AbortSignal !== 'undefined' && typeof AbortSignal.timeout === 'function') {
+      options.signal = AbortSignal.timeout(8000);
+    }
     var response;
     try {
-      response = await fetch('download/version.json', { cache: 'no-store', headers: { 'Accept': 'application/json' } });
+      response = await fetch('download/version.json', options);
     } catch (error) {
       setBuildState('MANIFEST UNAVAILABLE', 'error');
       return;

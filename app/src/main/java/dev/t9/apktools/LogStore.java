@@ -54,7 +54,7 @@ public final class LogStore {
 
     public static void init(Context context) {
         appContext = context.getApplicationContext();
-        App.io().execute(() -> {
+        App.runIo(() -> {
             int generation;
             synchronized (LOCK) {
                 generation = version;
@@ -101,7 +101,7 @@ public final class LogStore {
         }
         notifyListener();
         final Context context = appContext;
-        App.io().execute(() -> {
+        App.runIo(() -> {
             if (item.at < clearCutoff) {
                 return;
             }
@@ -138,7 +138,7 @@ public final class LogStore {
         }
         notifyListener();
         final Context app = context.getApplicationContext();
-        App.io().execute(() -> T9Database.get(app).clearEvents());
+        App.runIo(() -> T9Database.get(app).clearEvents());
     }
 
     public static String asText() {
