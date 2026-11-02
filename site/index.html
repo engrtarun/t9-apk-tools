@@ -3,19 +3,25 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>T9 APK Tools — Automatic Airplane mode for a fresh public IP</title>
-  <meta name="description" content="A no-root Android utility that cycles Airplane mode on a timer so a Jio hotspot session can get a new public IP. ADB or AccessibilityService. Native Kotlin/Java, open source.">
+  <title>T9 APK Tools — Scheduled Airplane mode for a new public IP</title>
+  <meta name="description" content="A no-root Android utility that arms a 15-minute timer, cycles Airplane mode, and reports whether your Jio hotspot session received a new public IP. Native Java, open source.">
   <meta name="theme-color" content="#0A0D09">
   <meta name="color-scheme" content="dark">
+  <meta name="robots" content="index,follow">
   <link rel="canonical" href="https://engrtarun.github.io/t9-apk-tools/">
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
-  <meta property="og:type" content="website">
-  <meta property="og:title" content="T9 APK Tools — Change your public IP without touching Airplane mode">
-  <meta property="og:description" content="A 15-minute timer, one Airplane mode cycle, a fresh carrier session. No root, no VPN. Built for Jio hotspot sessions.">
-  <meta property="og:url" content="https://engrtarun.github.io/t9-apk-tools/">
-  <meta name="twitter:card" content="summary">
   <link rel="stylesheet" href="styles.css">
   <script src="app.js" defer></script>
+
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="T9 APK Tools">
+  <meta property="og:title" content="T9 APK Tools — Change your public IP without touching Airplane mode">
+  <meta property="og:description" content="A 15-minute countdown, one Airplane mode cycle, an honest before-and-after IP check. No root, no VPN, no account.">
+  <meta property="og:url" content="https://engrtarun.github.io/t9-apk-tools/">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="T9 APK Tools — Change your public IP without touching Airplane mode">
+  <meta name="twitter:description" content="A no-root Android timer for the Jio hotspot Airplane mode routine. Native Java, open source, built by GitHub Actions.">
+
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
@@ -23,9 +29,12 @@
     "name": "T9 APK Tools",
     "applicationCategory": "UtilitiesApplication",
     "operatingSystem": "Android 8.0+",
-    "softwareVersion": "latest",
+    "description": "A no-root Android utility that cycles Airplane mode on a timer and reports whether the public IP changed.",
+    "url": "https://engrtarun.github.io/t9-apk-tools/",
+    "downloadUrl": "https://engrtarun.github.io/t9-apk-tools/download/t9-apk-tools.apk",
     "codeRepository": "https://github.com/engrtarun/t9-apk-tools",
     "license": "https://opensource.org/license/mit/",
+    "author": { "@type": "Person", "name": "Tarun Panchal" },
     "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
   }
   </script>
@@ -35,9 +44,13 @@
 
   <svg class="sprite" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
     <defs>
-      <symbol id="logo-mark" viewBox="0 0 108 108">
+      <filter id="t9-logo-glow" x="-40%" y="-40%" width="180%" height="180%">
+        <feGaussianBlur stdDeviation="5" result="blur"/>
+        <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+      </filter>
+      <symbol id="t9-logo" viewBox="0 0 108 108">
         <rect x="4" y="4" width="100" height="100" rx="24" fill="#151A12" stroke="#2A3524"/>
-        <g filter="url(#logo-glow)">
+        <g filter="url(#t9-logo-glow)">
           <path d="M30 80 45 65" stroke="#C8FF2E" stroke-width="15" stroke-linecap="round" fill="none"/>
           <path d="M47 62 78 31" stroke="#F2F5EC" stroke-width="5.5" stroke-linecap="round" fill="none"/>
           <path d="M75 25 82 23 84 30 78 34Z" fill="#F2F5EC"/>
@@ -50,42 +63,36 @@
           <circle cx="54" cy="52" r="3" fill="#F2F5EC"/>
         </g>
       </symbol>
-      <filter id="logo-glow" x="-40%" y="-40%" width="180%" height="180%">
-        <feGaussianBlur stdDeviation="5" result="blur"/>
-        <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
-      </filter>
 
       <symbol id="i-download" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m7.5 10.5 4.5 4.5 4.5-4.5"/><path d="M4 20h16"/></g></symbol>
-      <symbol id="i-arrow" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h16"/><path d="m14 6 6 6-6 6"/></g></symbol>
-      <symbol id="i-chevron" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+      <symbol id="i-arrow-right" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h16"/><path d="m14 6 6 6-6 6"/></g></symbol>
       <symbol id="i-external" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3h7v7"/><path d="M10 14 21 3"/><path d="M21 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5"/></g></symbol>
       <symbol id="i-github" viewBox="0 0 16 16"><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></symbol>
       <symbol id="i-copy" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></g></symbol>
       <symbol id="i-check" viewBox="0 0 24 24"><path d="m4.5 12.5 5 5L20 6.5" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+      <symbol id="i-menu" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 6h18"/><path d="M3 12h18"/><path d="M3 18h18"/></g></symbol>
+      <symbol id="i-close" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="m5 5 14 14"/><path d="M19 5 5 19"/></g></symbol>
       <symbol id="i-terminal" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="m4 17 6-6-6-6"/><path d="M12 19h8"/></g></symbol>
       <symbol id="i-access" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="4" r="1.8"/><path d="M4 8h16"/><path d="M12 8v5"/><path d="m12 13-4 8"/><path d="m12 13 4 8"/></g></symbol>
       <symbol id="i-tiles" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><rect x="3" y="3" width="7.5" height="7.5" rx="1.5"/><rect x="13.5" y="3" width="7.5" height="7.5" rx="1.5"/><rect x="3" y="13.5" width="7.5" height="7.5" rx="1.5"/><rect x="13.5" y="13.5" width="7.5" height="7.5" rx="1.5"/></g></symbol>
-      <symbol id="i-shield" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 19 6v5.5c0 4.4-2.9 7.8-7 9.5-4.1-1.7-7-5.1-7-9.5V6l7-3Z"/><path d="m9 12 2 2 4-4"/></g></symbol>
-      <symbol id="i-menu" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 6h18"/><path d="M3 12h18"/><path d="M3 18h18"/></g></symbol>
-      <symbol id="i-close" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="m5 5 14 14"/><path d="M19 5 5 19"/></g></symbol>
       <symbol id="i-clock" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></g></symbol>
+      <symbol id="i-shield" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 19 6v5.5c0 4.4-2.9 7.8-7 9.5-4.1-1.7-7-5.1-7-9.5V6l7-3Z"/><path d="m9 12 2 2 4-4"/></g></symbol>
+      <symbol id="i-wifi" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5a15 15 0 0 1 18 0"/><path d="M6.5 12.5a10 10 0 0 1 11 0"/><path d="M10 16.5a5 5 0 0 1 4 0"/><circle cx="12" cy="20" r=".8" fill="currentColor" stroke="none"/></g></symbol>
+      <symbol id="i-lock" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></g></symbol>
       <symbol id="i-alert" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 2.5 20h19L12 3Z"/><path d="M12 9v5"/><path d="M12 17.5h.01"/></g></symbol>
     </defs>
   </svg>
 
-  <header class="site-header" id="top">
+  <header class="site-header">
     <div class="shell header-inner">
-      <a class="brand" href="./" aria-label="T9 APK Tools home">
-        <svg class="brand-mark" viewBox="0 0 108 108" aria-hidden="true" focusable="false"><use href="#logo-mark"/></svg>
-        <span class="brand-type">
-          <span class="brand-name">T9 APK Tools</span>
-          <span class="brand-sub">Airplane automation</span>
-        </span>
+      <a class="brand" href="./" aria-label="T9 APK Tools — home">
+        <svg class="brand-mark" viewBox="0 0 108 108" aria-hidden="true" focusable="false"><use href="#t9-logo"/></svg>
+        <span class="brand-text"><strong>T9 APK TOOLS</strong><span>NETWORK RESET UTILITY</span></span>
       </a>
 
-      <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav" aria-label="Open navigation menu">
-        <svg class="icon icon-menu" aria-hidden="true" focusable="false"><use href="#i-menu"/></svg>
-        <svg class="icon icon-close" aria-hidden="true" focusable="false"><use href="#i-close"/></svg>
+      <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav" aria-label="Open menu" data-nav-toggle>
+        <svg class="icon nav-toggle-open" aria-hidden="true" focusable="false"><use href="#i-menu"/></svg>
+        <svg class="icon nav-toggle-close" aria-hidden="true" focusable="false"><use href="#i-close"/></svg>
       </button>
 
       <nav class="site-nav" id="site-nav" aria-label="Primary">
@@ -96,12 +103,12 @@
           <li><a href="#faq">FAQ</a></li>
           <li>
             <a class="nav-github" href="https://github.com/engrtarun/t9-apk-tools" target="_blank" rel="noopener noreferrer">
-              GitHub
-              <svg class="icon icon-xs" aria-hidden="true" focusable="false"><use href="#i-github"/></svg>
-              <span class="sr-only">(opens in a new tab)</span>
+              <svg class="icon icon--github" aria-hidden="true" focusable="false"><use href="#i-github"/></svg>
+              <span>GitHub</span>
+              <span class="sr-only"> (opens in a new tab)</span>
             </a>
           </li>
-          <li><a class="btn btn--lime btn--small" href="#download"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-download"/></svg>Download</a></li>
+          <li><a class="btn btn--lime btn--sm nav-download" href="#download">Download</a></li>
         </ul>
       </nav>
     </div>
@@ -109,589 +116,439 @@
 
   <main id="main">
     <section class="hero" aria-labelledby="hero-title">
-      <div class="hero-grid shell">
+      <div class="shell hero-grid">
         <div class="hero-copy">
-          <p class="eyebrow">No root <span class="sep">•</span> Accessibility automation</p>
+          <p class="eyebrow"><span class="eyebrow-dot" aria-hidden="true"></span>NO ROOT • ACCESSIBILITY AUTOMATION</p>
           <h1 id="hero-title">Change your public IP without touching <span class="hl">Airplane mode.</span></h1>
-          <p class="lede">Set a 15-minute timer, put the phone down, and let T9 APK Tools cycle Airplane mode for you. Built for Jio hotspot sessions that go stale — no root, no VPN, no laptop left tethered to the phone.</p>
-
+          <p class="hero-sub">T9 APK Tools arms a 15-minute countdown, toggles Airplane mode at the end, and checks the public address before and after. Built for Jio hotspot sessions that need a fresh carrier mapping — not a VPN, not root.</p>
           <div class="hero-actions">
-            <a class="btn btn--lime btn--lg" href="#download">
+            <a class="btn btn--lime btn--lg" href="download/t9-apk-tools.apk" download data-apk-link>
               <svg class="icon" aria-hidden="true" focusable="false"><use href="#i-download"/></svg>
-              Download APK
+              <span>Download APK</span>
             </a>
             <a class="btn btn--ghost btn--lg" href="#how-it-works">
-              Read how it works
-              <svg class="icon" aria-hidden="true" focusable="false"><use href="#i-arrow"/></svg>
+              <span>See how it works</span>
+              <svg class="icon" aria-hidden="true" focusable="false"><use href="#i-arrow-right"/></svg>
             </a>
           </div>
-
-          <ul class="meta-chips" aria-label="At a glance">
-            <li>Android 8.0+</li>
+          <ul class="chips" aria-label="At a glance">
+            <li>Android 8+</li>
             <li>~2–3 MB APK</li>
             <li>Open source</li>
             <li>Built by Actions</li>
           </ul>
-
-          <p class="hero-note">Native Kotlin/Java, not a WebView. <span class="sep">·</span> Not affiliated with Jio.</p>
         </div>
 
-        <div class="hero-visual">
-          <figure class="phone-figure">
-            <div class="phone" role="img" aria-label="Illustrative T9 APK Tools screen: a timer armed with 14 minutes 32 seconds remaining, an airplane mode cycle scheduled, a sample public IP before and after, and a short activity log.">
-              <span class="phone-notch" aria-hidden="true"></span>
-              <div class="phone-screen" aria-hidden="true">
-                <div class="phone-status">
-                  <span class="phone-time">9:41</span>
-                  <span class="phone-signal">
-                    <svg viewBox="0 0 18 12" class="status-svg"><path d="M1 11V8h2v3H1Zm4 0V6h2v5H5Zm4 0V3.5h2V11H9Zm4 0V1h2v10h-2Z" fill="currentColor"/></svg>
-                    <svg viewBox="0 0 16 12" class="status-svg"><path d="M8 11.2 5.7 8.7a3.4 3.4 0 0 1 4.6 0L8 11.2Zm-4.4-4.8a6.9 6.9 0 0 1 8.8 0l-1.5 1.6a4.8 4.8 0 0 0-5.8 0L3.6 6.4ZM.8 3.7a10.4 10.4 0 0 1 14.4 0l-1.5 1.6a8.2 8.2 0 0 0-11.4 0L.8 3.7Z" fill="currentColor"/></svg>
-                    <svg viewBox="0 0 22 11" class="status-svg status-battery"><rect x="0.5" y="0.5" width="18" height="10" rx="2" fill="none" stroke="currentColor"/><rect x="2.5" y="2.5" width="11" height="6" fill="currentColor"/><path d="M20 4v3" stroke="currentColor" stroke-linecap="round"/></svg>
-                  </span>
+        <figure class="hero-mock">
+          <div class="mock-note mock-note--top" aria-hidden="true"><span>DEFAULT TIMER</span><strong>15:00</strong></div>
+          <div class="mock-note mock-note--bottom" aria-hidden="true"><span>RADIO HOLD</span><strong>~3 s</strong></div>
+
+          <div class="phone" role="img" aria-label="Illustrative T9 APK Tools screen. A 15-minute timer shows 14:32 remaining and is marked ARMED. The public IP changes from 203.0.113.24 to 203.0.113.87. Three local log lines show the timer armed, Airplane mode on and off, and the new IP captured.">
+            <span class="phone-key phone-key--power" aria-hidden="true"></span>
+            <span class="phone-key phone-key--volume" aria-hidden="true"></span>
+            <div class="phone-screen">
+              <div class="phone-status" aria-hidden="true"><time datetime="14:32">14:32</time><span class="phone-status-icons"><i></i><i></i><i></i></span></div>
+
+              <div class="app-head">
+                <svg class="app-logo" viewBox="0 0 108 108" aria-hidden="true" focusable="false"><use href="#t9-logo"/></svg>
+                <div class="app-title"><strong>T9 APK Tools</strong><span>NETWORK RESET TOOLKIT</span></div>
+                <span class="app-setup">SETUP</span>
+              </div>
+
+              <div class="app-card">
+                <div class="app-card-head">
+                  <span>NEXT NETWORK RESET</span>
+                  <span class="pill pill--armed"><span class="pill-dot" aria-hidden="true"></span>ARMED</span>
                 </div>
-
-                <div class="app-bar">
-                  <span class="app-brand">
-                    <svg viewBox="0 0 108 108" class="app-logo"><use href="#logo-mark"/></svg>
-                    <span>T9 APK Tools</span>
-                  </span>
-                  <span class="app-engine"><i></i>ADB</span>
-                </div>
-
-                <div class="app-body">
-                  <div class="timer-head">
-                    <span>Next reset</span>
-                    <span class="pill-armed"><i></i>ARMED</span>
-                  </div>
-
-                  <div class="timer-ring">
-                    <svg viewBox="0 0 180 180" class="ring-svg">
-                      <circle class="ring-track" cx="90" cy="90" r="76" pathLength="100"/>
-                      <circle class="ring-progress" cx="90" cy="90" r="76" pathLength="100"/>
-                    </svg>
-                    <div class="timer-center">
-                      <strong class="timer-digits">14:32</strong>
-                      <span class="timer-label">until cycle</span>
-                      <span class="timer-sub">15:00 window</span>
-                    </div>
-                  </div>
-
-                  <div class="cycle-strip">
-                    <span>Airplane cycle</span>
-                    <span class="cycle-value">ON · 3 s · OFF</span>
-                  </div>
-
-                  <div class="ip-card">
-                    <div class="ip-head"><span>Public IP</span><span>LAST CYCLE</span></div>
-                    <div class="ip-row">
-                      <div class="ip-col"><span>BEFORE</span><strong>203.0.113.42</strong></div>
-                      <svg viewBox="0 0 24 24" class="ip-arrow"><use href="#i-arrow"/></svg>
-                      <div class="ip-col"><span>AFTER</span><strong class="ip-new">203.0.113.87</strong></div>
-                    </div>
-                  </div>
-
-                  <div class="activity">
-                    <div class="activity-head"><span>Activity</span><span>15:02</span></div>
-                    <ul>
-                      <li><span class="log-time">14:47</span><span class="log-dot"></span><span>Timer armed</span></li>
-                      <li><span class="log-time">15:02</span><span class="log-dot"></span><span>Airplane ON</span></li>
-                      <li><span class="log-time">15:02</span><span class="log-dot"></span><span>Airplane OFF</span></li>
-                      <li><span class="log-time">15:02</span><span class="log-dot log-dot--new"></span><span>New IP observed</span></li>
-                    </ul>
+                <div class="ring-wrap">
+                  <div class="ring" aria-hidden="true"></div>
+                  <div class="ring-face">
+                    <span class="ring-label">REMAINING</span>
+                    <strong class="ring-time">14:32</strong>
+                    <span class="ring-unit">OF 15:00</span>
                   </div>
                 </div>
-
-                <div class="app-tabbar">
-                  <span class="is-active">Timer</span>
-                  <span>Log</span>
-                  <span>Settings</span>
+                <div class="cancel-timer" aria-hidden="true">
+                  <svg class="icon" viewBox="0 0 24 24" focusable="false"><use href="#i-close"/></svg>
+                  CANCEL TIMER
                 </div>
               </div>
-            </div>
-            <figcaption>Illustrative UI <span class="sep">·</span> Android <span class="sep">·</span> ADB engine</figcaption>
-          </figure>
 
-          <aside class="visual-note" aria-label="ADB engine benefit">
-            <span class="visual-note-kicker">Direct engine</span>
-            <p>Screen can stay locked. The app writes the setting directly.</p>
+              <div class="app-card app-card--ip">
+                <div class="app-card-head">
+                  <span>PUBLIC IP</span>
+                  <span class="pill pill--ok">CHANGED</span>
+                </div>
+                <div class="ip-line"><span>BEFORE</span><code>203.0.113.24</code></div>
+                <div class="ip-arrow" aria-hidden="true"><span></span><svg class="icon" viewBox="0 0 24 24" focusable="false"><use href="#i-download"/></svg></div>
+                <div class="ip-line"><span>AFTER</span><code>203.0.113.87</code></div>
+              </div>
+
+              <div class="app-log">
+                <div class="log-head"><span>ACTIVITY</span><span>LOCAL · 3</span></div>
+                <ol>
+                  <li><time datetime="14:32:00">14:32:00</time><span>Timer armed</span><em>15:00</em></li>
+                  <li><time datetime="14:32:02">14:32:02</time><span>Airplane on → off</span><em>3.0 s</em></li>
+                  <li><time datetime="14:32:14">14:32:14</time><span>IP captured</span><em class="is-lime">CHANGED</em></li>
+                </ol>
+              </div>
+
+              <div class="phone-home" aria-hidden="true"></div>
+            </div>
+          </div>
+          <figcaption>Illustrative app screen. IP addresses are examples.</figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <section class="section" id="problem" aria-labelledby="problem-title">
+      <div class="shell">
+        <div class="section-head">
+          <p class="kicker"><span>01</span> THE PROBLEM</p>
+          <h2 id="problem-title">The toggle is easy. Remembering it every 15 minutes is not.</h2>
+          <p class="section-intro">Jio puts hotspot users behind carrier-grade NAT. A session can hold the same public mapping for hours, so the workaround became a manual routine.</p>
+        </div>
+
+        <div class="problem-grid">
+          <div class="prose">
+            <p class="lede">The public IPv4 address a website sees belongs to the carrier, not the phone. When a session needs a new network path, the usual fix is to force the radios to reconnect.</p>
+            <p>By hand, that means Airplane mode on, waiting for the radios to drop, turning it off, waiting for mobile data, restoring the hotspot, and repeating the whole thing 15 minutes later. It ties up the phone and is easy to miss.</p>
+            <p class="callout"><strong>The app cannot choose your address.</strong> It can time the toggle, perform it, and record whether the address actually changed. The carrier still decides.</p>
+          </div>
+
+          <aside class="manual-panel" aria-label="Manual reset routine">
+            <div class="panel-label"><span>MANUAL RESET</span><span>6 STEPS</span></div>
+            <ol class="manual-list">
+              <li><span>01</span>Turn Airplane mode on</li>
+              <li><span>02</span>Wait for the radios to drop</li>
+              <li><span>03</span>Turn Airplane mode off</li>
+              <li><span>04</span>Wait for mobile data</li>
+              <li><span>05</span>Restore the hotspot</li>
+              <li><span>06</span>Repeat every 15 minutes</li>
+            </ol>
+            <p class="panel-foot">Phone nearby. Screen on for UI automation. No guarantee the address changes.</p>
           </aside>
         </div>
       </div>
     </section>
 
-    <section class="trust" aria-label="Product facts">
-      <div class="shell">
-        <ul>
-          <li><svg class="icon icon-xs" aria-hidden="true" focusable="false"><use href="#i-check"/></svg>No root</li>
-          <li><svg class="icon icon-xs" aria-hidden="true" focusable="false"><use href="#i-check"/></svg>No VPN</li>
-          <li><svg class="icon icon-xs" aria-hidden="true" focusable="false"><use href="#i-check"/></svg>No account</li>
-          <li><svg class="icon icon-xs" aria-hidden="true" focusable="false"><use href="#i-check"/></svg>No telemetry</li>
-          <li><svg class="icon icon-xs" aria-hidden="true" focusable="false"><use href="#i-check"/></svg>MIT licensed</li>
-          <li class="trust-end">Native Kotlin / Java</li>
-        </ul>
-      </div>
-    </section>
-
-    <section class="section problem" id="problem" aria-labelledby="problem-title">
-      <div class="shell split">
-        <div class="section-intro" data-reveal>
-          <p class="eyebrow">The ritual</p>
-          <h2 id="problem-title">You shouldn't have to unlock your phone every time.</h2>
-          <p>Every stale hotspot session turns into the same small ceremony: unlock, find settings, toggle Airplane mode, wait, toggle it back, check the address. Then do it again in fifteen minutes.</p>
-          <p>T9 APK Tools exists to remove that loop. It schedules the cycle, performs it, and records what the network actually gave you.</p>
-          <div class="callout">
-            <p><strong>The constraint:</strong> Android does not let an ordinary app flip Airplane mode silently. That is why this app needs either a one-time ADB grant or an AccessibilityService. There is no hidden shortcut, and no root.</p>
-          </div>
-        </div>
-
-        <div class="compare" data-reveal>
-          <div class="compare-col compare-col--manual">
-            <div class="compare-head">
-              <span class="compare-index">01</span>
-              <h3>By hand</h3>
-            </div>
-            <ul>
-              <li><span class="compare-time">00:00</span><div><strong>Unlock and dig in.</strong><p>Network &amp; internet → Airplane mode.</p></div></li>
-              <li><span class="compare-time">00:20</span><div><strong>Toggle on, wait, toggle off.</strong><p>Then wait for mobile data to return.</p></div></li>
-              <li><span class="compare-time">01:00</span><div><strong>Check the new address.</strong><p>Browser, IP site, compare, hope.</p></div></li>
-              <li><span class="compare-time">15:00</span><div><strong>Repeat.</strong><p>And again when the session expires.</p></div></li>
-            </ul>
-          </div>
-
-          <div class="compare-col compare-col--auto">
-            <div class="compare-head">
-              <span class="compare-index">02</span>
-              <h3>Scheduled</h3>
-              <span class="compare-badge">T9</span>
-            </div>
-            <ul>
-              <li><span class="compare-time">00:00</span><div><strong>Set it once.</strong><p>15 minutes on the dial. Press Arm.</p></div></li>
-              <li><span class="compare-time">00:20</span><div><strong>Leave the phone down.</strong><p>Wake, write the setting, hold, restore.</p></div></li>
-              <li><span class="compare-time">01:00</span><div><strong>Read the result.</strong><p>Before and after addresses are logged.</p></div></li>
-              <li><span class="compare-time">15:00</span><div><strong>It re-arms.</strong><p>Cancel from the app or the Quick Settings tile.</p></div></li>
-            </ul>
-          </div>
-          <p class="compare-foot">Accessibility mode needs the screen unlocked at reset. The ADB grant does not.</p>
-        </div>
-      </div>
-    </section>
-
-    <section class="section engines" id="how-it-works" aria-labelledby="engines-title">
+    <section class="section" id="how-it-works" aria-labelledby="engines-title">
       <div class="shell">
         <div class="section-head">
-          <div data-reveal>
-            <p class="eyebrow">Under the hood</p>
-            <h2 id="engines-title">How the reset actually works.</h2>
-          </div>
-          <p class="section-lede" data-reveal>Three ways to flip the radio, in descending order of reliability. Pick based on how much setup you want to do once — not on how the timer behaves afterwards.</p>
+          <p class="kicker"><span>02</span> THREE ENGINES</p>
+          <h2 id="engines-title">One switch, three ways to reach it.</h2>
+          <p class="section-intro">Every engine ends with the same result: Airplane mode on for about three seconds, then off. Auto mode picks the most reliable option available.</p>
         </div>
 
-        <div class="engine-grid" data-reveal>
-          <article class="engine engine--rec">
-            <div class="engine-top">
-              <span class="engine-num">01</span>
-              <span class="engine-badge">Recommended</span>
-            </div>
-            <div class="engine-icon"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-terminal"/></svg></div>
+        <div class="engine-grid">
+          <article class="engine engine--direct" data-reveal>
+            <div class="engine-top"><span class="engine-no">01</span><span class="badge badge--lime">Recommended</span></div>
             <h3>Direct <span class="engine-alias">ADB</span></h3>
-            <p>The app writes <code>Settings.Global.AIRPLANE_MODE_ON</code> directly, using a permission granted once over USB. No UI automation, no screen navigation, no root.</p>
-            <dl class="engine-specs">
-              <div><dt>Reliability</dt><dd><span class="reliability"><span class="meter" aria-hidden="true"><i class="on"></i><i class="on"></i><i class="on"></i></span>High</span></dd></div>
-              <div><dt>Needs</dt><dd>One-time ADB grant</dd></div>
-              <div><dt>Screen</dt><dd>Can stay locked</dd></div>
+            <p class="engine-desc">Writes the Airplane mode secure setting directly. No screen tapping, no Settings app, no visible UI.</p>
+            <dl class="spec">
+              <div class="spec-row"><dt>Requirement</dt><dd>One-time ADB grant of <code>WRITE_SECURE_SETTINGS</code></dd></div>
+              <div class="spec-row"><dt>Reliability</dt><dd><span class="meter" aria-hidden="true"><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i></span>Highest</dd></div>
+              <div class="spec-row"><dt>Screen state</dt><dd>Can stay off or locked</dd></div>
             </dl>
+            <p class="engine-note"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-terminal"/></svg>Some OEMs still block secure-setting writes in the background.</p>
           </article>
 
-          <article class="engine">
-            <div class="engine-top">
-              <span class="engine-num">02</span>
-            </div>
-            <div class="engine-icon"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-access"/></svg></div>
+          <article class="engine" data-reveal>
+            <div class="engine-top"><span class="engine-no">02</span><span class="badge">No PC</span></div>
             <h3>Accessibility</h3>
-            <p>A native AccessibilityService opens Quick Settings and flips the toggle itself. No computer required after setup, though OEM layouts can move things around.</p>
-            <dl class="engine-specs">
-              <div><dt>Reliability</dt><dd><span class="reliability"><span class="meter" aria-hidden="true"><i class="on"></i><i class="on"></i><i></i></span>Medium</span></dd></div>
-              <div><dt>Needs</dt><dd>Service enabled</dd></div>
-              <div><dt>Screen</dt><dd>Must be unlocked</dd></div>
+            <p class="engine-desc">Opens the Airplane mode Settings page and activates the switch through Android's accessibility service.</p>
+            <dl class="spec">
+              <div class="spec-row"><dt>Requirement</dt><dd>Accessibility service enabled for T9 APK Tools</dd></div>
+              <div class="spec-row"><dt>Reliability</dt><dd><span class="meter" aria-hidden="true"><i class="is-on"></i><i class="is-on"></i><i></i></span>High, OEM-dependent</dd></div>
+              <div class="spec-row"><dt>Screen state</dt><dd>On and unlocked</dd></div>
             </dl>
+            <p class="engine-note"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-access"/></svg>Best fallback when you cannot run ADB. No computer required.</p>
           </article>
 
-          <article class="engine">
-            <div class="engine-top">
-              <span class="engine-num">03</span>
-            </div>
-            <div class="engine-icon"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-tiles"/></svg></div>
+          <article class="engine" data-reveal>
+            <div class="engine-top"><span class="engine-no">03</span><span class="badge">Fallback</span></div>
             <h3>Quick Settings</h3>
-            <p>A tile to arm, cancel, or fire the cycle now. It is a control surface for whichever engine you configured, not a third automation path.</p>
-            <dl class="engine-specs">
-              <div><dt>Reliability</dt><dd><span class="reliability"><span class="meter" aria-hidden="true"><i class="on"></i><i></i><i></i></span>Manual</span></dd></div>
-              <div><dt>Needs</dt><dd>Tile added</dd></div>
-              <div><dt>Screen</dt><dd>Tap to trigger</dd></div>
+            <p class="engine-desc">Pulls down the Quick Settings shade and activates the Airplane tile. Uses calibrated coordinates if text matching fails.</p>
+            <dl class="spec">
+              <div class="spec-row"><dt>Requirement</dt><dd>Accessibility service enabled</dd></div>
+              <div class="spec-row"><dt>Reliability</dt><dd><span class="meter" aria-hidden="true"><i class="is-on"></i><i class="is-on"></i><i></i></span>Medium to high</dd></div>
+              <div class="spec-row"><dt>Screen state</dt><dd>On and unlocked</dd></div>
             </dl>
+            <p class="engine-note"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-tiles"/></svg>For skins where the Settings switch is hard to match.</p>
           </article>
         </div>
+
+        <p class="auto-note"><strong>Auto mode</strong> resolves Direct → Accessibility → Quick Settings and records the engine it used in the notification and local log. <a href="#setup">Set up an engine</a>.</p>
       </div>
     </section>
 
-    <section class="section section--band setup" id="setup" aria-labelledby="setup-title">
-      <div class="shell setup-grid">
-        <div class="setup-copy" data-reveal>
-          <p class="eyebrow">Setup</p>
-          <h2 id="setup-title">Four steps. One of them is a single command.</h2>
-          <p class="section-lede">Pick one engine. You do not need both the ADB grant and the Accessibility service. The timer behaves the same either way; only the way the radio gets flipped changes.</p>
-          <div class="setup-aside">
-            <svg class="icon" aria-hidden="true" focusable="false"><use href="#i-shield"/></svg>
-            <p><strong>No root at any point.</strong> USB debugging is a normal developer setting. The grant can be revoked with ADB, or removed by uninstalling the app.</p>
-          </div>
+    <section class="section section--band" id="setup" aria-labelledby="setup-title">
+      <div class="shell">
+        <div class="section-head">
+          <p class="kicker"><span>03</span> SETUP</p>
+          <h2 id="setup-title">Three steps, one optional command.</h2>
+          <p class="section-intro">Install the APK, grant Direct access or enable Accessibility, then arm the timer. Direct needs a computer once. The accessibility engines do not.</p>
         </div>
 
-        <ol class="setup-steps" data-reveal>
-          <li>
-            <span class="step-marker" aria-hidden="true">01</span>
+        <ol class="setup-timeline">
+          <li class="setup-step">
+            <div class="step-marker" aria-hidden="true">01</div>
             <div class="step-body">
-              <h3>Install the APK</h3>
-              <p>Download the current build from this page. Android will ask you to allow installs from your browser; that prompt is normal for a direct APK.</p>
-              <p class="step-note">Android 8.0 or newer. The package is <code>dev.t9.apktools</code>.</p>
+              <div class="step-head"><h3>Install the APK</h3><span class="step-tag">Start here</span></div>
+              <p>Download the APK from this page or GitHub Releases, allow installs from your browser or file manager, then open it. Play Protect may warn about an app it does not recognize; review the source before continuing.</p>
+              <a class="text-link" href="#download">Go to the download section<svg class="icon" aria-hidden="true" focusable="false"><use href="#i-arrow-right"/></svg></a>
             </div>
           </li>
 
-          <li>
-            <span class="step-marker" aria-hidden="true">02</span>
+          <li class="setup-step">
+            <div class="step-marker" aria-hidden="true">02</div>
             <div class="step-body">
-              <h3>Grant direct-write access <span class="step-tag">Recommended</span></h3>
-              <p>Connect the phone, enable USB debugging, then run this once from a computer with ADB installed. It grants <code>WRITE_SECURE_SETTINGS</code> to this app only.</p>
-              <div class="code-block">
-                <code>adb shell pm grant dev.t9.apktools android.permission.WRITE_SECURE_SETTINGS</code>
-                <button class="copy-btn" type="button" data-copy-value="adb shell pm grant dev.t9.apktools android.permission.WRITE_SECURE_SETTINGS" aria-label="Copy ADB grant command">
-                  <svg class="icon" aria-hidden="true" focusable="false"><use href="#i-copy"/></svg>
-                  <span class="copy-btn-label">Copy</span>
-                </button>
+              <div class="step-head"><h3>Grant Direct access</h3><span class="step-tag step-tag--lime">Recommended</span></div>
+              <p>Enable USB debugging (or Android wireless debugging), connect once, and run this from a terminal on the computer:</p>
+
+              <div class="command-block">
+                <div class="command-head">
+                  <span><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-terminal"/></svg>Terminal</span>
+                  <button class="copy-btn" type="button" data-copy-target="adb-grant" data-copy-name="ADB command" aria-label="Copy ADB grant command">
+                    <svg class="icon copy-icon" aria-hidden="true" focusable="false"><use href="#i-copy"/></svg>
+                    <svg class="icon check-icon" aria-hidden="true" focusable="false"><use href="#i-check"/></svg>
+                    <span data-copy-label>Copy</span>
+                  </button>
+                </div>
+                <div class="code-scroll" tabindex="0" role="region" aria-label="ADB command to grant WRITE_SECURE_SETTINGS">
+                  <span class="prompt" aria-hidden="true">$</span><code id="adb-grant">adb shell pm grant dev.t9.apktools android.permission.WRITE_SECURE_SETTINGS</code>
+                </div>
               </div>
-              <p class="step-note">Survives reboots. Revoke it later with the same command using <code>revoke</code> instead of <code>grant</code>.</p>
+
+              <p class="step-note">The grant survives reboots and app updates. It is removed when you uninstall the app. No computer? Skip this and enable <strong>Settings → Accessibility → T9 APK Tools</strong> instead. That path needs the screen on and unlocked.</p>
             </div>
           </li>
 
-          <li>
-            <span class="step-marker" aria-hidden="true">03</span>
+          <li class="setup-step">
+            <div class="step-marker" aria-hidden="true">03</div>
             <div class="step-body">
-              <h3>Or enable the Accessibility service</h3>
-              <p>No computer needed. Open <span class="path">Settings → Accessibility → T9 APK Tools</span> and turn the service on. The exact menu name varies by OEM.</p>
-              <div class="inline-warning">
-                <svg class="icon" aria-hidden="true" focusable="false"><use href="#i-alert"/></svg>
-                <p>An accessibility service can observe and control the screen. Android will show a serious permission dialog. Grant it only to a build you trust.</p>
-              </div>
-            </div>
-          </li>
-
-          <li>
-            <span class="step-marker" aria-hidden="true">04</span>
-            <div class="step-body">
-              <h3>Arm the timer</h3>
-              <p>Set the window — 15 minutes is the default — and press Arm. Keep the hotspot on. Run one manual cycle first so you know how your phone behaves before trusting it unattended.</p>
-              <p class="step-note">Long sessions: keep the charger connected and exempt the app from aggressive battery optimisation.</p>
+              <div class="step-head"><h3>Arm the timer</h3><span class="step-tag">About a minute</span></div>
+              <p>Allow notifications and exact alarms, set the countdown (15:00 by default), choose Auto, and start. Set the app to Unrestricted in battery settings. Leave the phone unlocked if you use Accessibility or Quick Settings.</p>
+              <p class="step-note">Android 13 and later may require allowing restricted settings for a sideloaded app before the Accessibility service can be enabled.</p>
             </div>
           </li>
         </ol>
       </div>
     </section>
 
-    <section class="section sequence-section" id="sequence" aria-labelledby="sequence-title">
+    <section class="section" id="sequence" aria-labelledby="sequence-title">
       <div class="shell">
         <div class="section-head">
-          <div data-reveal>
-            <p class="eyebrow">The runbook</p>
-            <h2 id="sequence-title">What happens on reset.</h2>
-          </div>
-          <p class="section-lede" data-reveal>Eight steps, in order. The only fixed number is the three-second dwell; the network wait ends when data reports back, or when the attempt times out.</p>
+          <p class="kicker"><span>04</span> THE RESET</p>
+          <h2 id="sequence-title">What happens when the timer ends.</h2>
+          <p class="section-intro">The run is visible in a foreground notification. Airplane mode is restored even when the toggle or the IP check fails.</p>
         </div>
 
-        <div class="sequence-wrap" data-reveal>
+        <div class="sequence-panel" data-reveal>
           <div class="sequence-head">
-            <span>Reset sequence</span>
-            <span class="sequence-meta"><svg class="icon icon-xs" aria-hidden="true" focusable="false"><use href="#i-clock"/></svg> Airplane dwell fixed at 3 s</span>
+            <span>RESET CYCLE</span>
+            <span class="sequence-state"><i aria-hidden="true"></i>FOREGROUND SERVICE</span>
           </div>
           <ol class="sequence">
-            <li>
-              <span class="seq-num">01</span>
-              <h3>Wake</h3>
-              <p>The scheduled job runs. With the ADB engine the display can stay off.</p>
-            </li>
-            <li>
-              <span class="seq-num">02</span>
-              <h3>Unlock check</h3>
-              <p>Accessibility mode verifies the keyguard is clear. If not, it aborts and logs it.</p>
-              <span class="seq-tag">Accessibility only</span>
-            </li>
-            <li>
-              <span class="seq-num">03</span>
-              <h3>Capture IP</h3>
-              <p>Reads the current public address from a small external IP endpoint.</p>
-            </li>
-            <li>
-              <span class="seq-num">04</span>
-              <h3>Airplane ON</h3>
-              <p>Writes the setting or performs the toggle. Mobile data and hotspot drop.</p>
-            </li>
-            <li>
-              <span class="seq-num">05</span>
-              <h3>Hold 3 s</h3>
-              <p>A fixed dwell gives the carrier session time to expire.</p>
-              <span class="seq-tag">3 seconds</span>
-            </li>
-            <li>
-              <span class="seq-num">06</span>
-              <h3>Airplane OFF</h3>
-              <p>Restores the radio state and starts waiting for the network.</p>
-            </li>
-            <li>
-              <span class="seq-num">07</span>
-              <h3>Wait for data</h3>
-              <p>Polls connectivity until mobile data returns, with a timeout instead of forever.</p>
-            </li>
-            <li>
-              <span class="seq-num">08</span>
-              <h3>Capture IP</h3>
-              <p>Reads the address again and logs before → after. A repeat address is a valid result.</p>
-            </li>
+            <li><span class="seq-no">01</span><h3>Timer ends</h3><p>The exact alarm fires and the foreground service starts.</p></li>
+            <li><span class="seq-no">02</span><h3>Read before</h3><p>Current public IP, with two fallback lookup services.</p></li>
+            <li><span class="seq-no">03</span><h3>Airplane on</h3><p>The chosen engine writes the setting or taps the switch or tile.</p></li>
+            <li><span class="seq-no">04</span><h3>Hold ~3 s</h3><p>The radios drop and the carrier session can be torn down.</p></li>
+            <li><span class="seq-no">05</span><h3>Airplane off</h3><p>The app restores Airplane mode off and waits for mobile data.</p></li>
+            <li><span class="seq-no">06</span><h3>Read after</h3><p>A second lookup, then a comparison and a local log entry.</p></li>
+            <li><span class="seq-no">07</span><h3>Log + re-arm</h3><p>Notify the result and schedule the next reset if active.</p></li>
           </ol>
+          <p class="sequence-foot">Hotspot restore is attempted only if enabled, and it is experimental. Connected clients may still need to reconnect.</p>
         </div>
-        <p class="sequence-foot">Timing is deliberately unambitious: three seconds is long enough for most carrier sessions to expire and short enough to keep the hotspot outage brief. It is not a guarantee — which is why the app checks the address afterwards.</p>
       </div>
     </section>
 
-    <section class="section limits" id="limits" aria-labelledby="limits-title">
+    <section class="section" id="limits" aria-labelledby="limits-title">
       <div class="shell">
         <div class="section-head">
-          <div data-reveal>
-            <p class="eyebrow">Nothing hidden</p>
-            <h2 id="limits-title">The honest limits.</h2>
-          </div>
-          <p class="section-lede" data-reveal>This automates a setting you could change by hand. It does not defeat carrier policy, tariff limits, or CGNAT. If one of these is a dealbreaker, better to know now.</p>
+          <p class="kicker"><span>05</span> LIMITS</p>
+          <h2 id="limits-title">What it cannot do.</h2>
+          <p class="section-intro">The app is explicit about the parts it does not control. Read these before relying on it for anything important.</p>
         </div>
 
-        <ul class="limits-grid" data-reveal>
-          <li>
-            <span class="limit-label">L01 <span>/</span> CGNAT</span>
-            <h3>A different IP is not guaranteed.</h3>
-            <p>Carrier-grade NAT can hand back the same public address. Retry, wait longer, or switch mobile data off and on. The app logs what it saw; it will not pretend the address changed.</p>
-          </li>
-          <li>
-            <span class="limit-label">L02 <span>/</span> Hotspot</span>
+        <div class="limits-grid">
+          <article class="limit" data-reveal>
+            <span class="limit-no">01</span>
+            <h3>CGNAT may return the same address.</h3>
+            <p>The carrier decides whether a reconnect gets a new address. CGNAT may hand back the same address; retry or toggle data off/on. Same IP is a normal result, not a failed toggle.</p>
+          </article>
+          <article class="limit" data-reveal>
+            <span class="limit-no">02</span>
             <h3>The hotspot may drop.</h3>
-            <p>Airplane mode takes the radios down. Android or your OEM may not restore the hotspot automatically. Expect to re-enable it after a cycle, especially on the first try.</p>
-          </li>
-          <li>
-            <span class="limit-label">L03 <span>/</span> Keyguard</span>
-            <h3>Accessibility mode needs an unlocked screen.</h3>
-            <p>If the keyguard is up, the service cannot drive Settings. The cycle is skipped and written to the log. The ADB grant has no such requirement.</p>
-          </li>
-          <li>
-            <span class="limit-label">L04 <span>/</span> OEM variance</span>
-            <h3>Settings layouts vary.</h3>
-            <p>Accessibility automation follows labels and positions that Samsung, Xiaomi, and others like to move. Direct mode avoids the UI entirely, which is why it is recommended.</p>
-          </li>
-          <li>
-            <span class="limit-label">L05 <span>/</span> Not a VPN</span>
-            <h3>It does not hide your traffic.</h3>
-            <p>Nothing is tunnelled or encrypted by this app. Your carrier still sees the connection; the app only asks for a new network session.</p>
-          </li>
-          <li>
-            <span class="limit-label">L06 <span>/</span> Scope</span>
-            <h3>No root. No telemetry. No magic.</h3>
-            <p>No superuser, no account, no analytics. IP checks go to a public endpoint and the result stays in the on-device log. Carrier rules still apply.</p>
-          </li>
-        </ul>
-        <p class="limits-foot">Independent utility. Not affiliated with Jio, Google, or any carrier. Use it within your plan and local rules.</p>
+            <p>Airplane mode turns off Wi-Fi and the hotspot. Restoring the hotspot is experimental and OEM-dependent. Connected clients may need to reconnect.</p>
+          </article>
+          <article class="limit" data-reveal>
+            <span class="limit-no">03</span>
+            <h3>UI automation needs an unlocked screen.</h3>
+            <p>Accessibility and Quick Settings cannot operate on a locked device. Direct can, though some OEMs still block secure-setting writes in the background.</p>
+          </article>
+          <article class="limit" data-reveal>
+            <span class="limit-no">04</span>
+            <h3>OEM behavior varies.</h3>
+            <p>Settings labels, Quick Settings layouts, and battery restrictions differ across Samsung, Xiaomi, Oppo, Vivo, OnePlus, Realme, and others. Node matching has fallbacks, not a guarantee.</p>
+          </article>
+          <article class="limit" data-reveal>
+            <span class="limit-no">05</span>
+            <h3>It is not a VPN.</h3>
+            <p>No traffic is encrypted, proxied, or hidden; it cycles a radio state. A VPN masks the carrier address and makes a before-and-after comparison meaningless, so turn it off when testing.</p>
+          </article>
+          <article class="limit" data-reveal>
+            <span class="limit-no">06</span>
+            <h3>No root. One optional grant.</h3>
+            <p>Direct uses a documented ADB permission grant, not root. Accessibility uses Android's accessibility framework. Nothing here bypasses carrier controls.</p>
+          </article>
+          <article class="limit limit--wide" data-reveal>
+            <span class="limit-no">07</span>
+            <h3>No data collection.</h3>
+            <p>No accounts, analytics, ads, or crash reporting. IP checks go to public IP services; results and logs stay on the device. This site sets no cookies and loads nothing from third parties.</p>
+          </article>
+        </div>
       </div>
     </section>
 
-    <section class="section faq" id="faq" aria-labelledby="faq-title">
-      <div class="shell faq-grid">
-        <div class="faq-intro" data-reveal>
-          <p class="eyebrow">Questions</p>
-          <h2 id="faq-title">Asked before installing.</h2>
-          <p class="section-lede">Short answers, including the ones that make the app sound less impressive than a landing page usually does.</p>
-          <div class="faq-aside">
-            <p>Something not covered?</p>
-            <a class="text-link" href="https://github.com/engrtarun/t9-apk-tools/issues" target="_blank" rel="noopener noreferrer">Open an issue on GitHub <svg class="icon icon-xs" aria-hidden="true" focusable="false"><use href="#i-external"/></svg><span class="sr-only">(opens in a new tab)</span></a>
-          </div>
+    <section class="section" id="faq" aria-labelledby="faq-title">
+      <div class="shell faq-layout">
+        <div class="faq-intro">
+          <p class="kicker"><span>06</span> FAQ</p>
+          <h2 id="faq-title">Before you sideload.</h2>
+          <p>Short answers. The README and source cover the deeper details, including failure handling and device-specific notes.</p>
+          <a class="text-link" href="https://github.com/engrtarun/t9-apk-tools#readme" target="_blank" rel="noopener noreferrer">Read the README<svg class="icon" aria-hidden="true" focusable="false"><use href="#i-external"/></svg><span class="sr-only"> (opens in a new tab)</span></a>
         </div>
 
-        <div class="faq-list" data-reveal>
-          <details open>
-            <summary>
-              <span>Do I need root?</span>
-              <svg class="icon faq-chevron" aria-hidden="true" focusable="false"><use href="#i-chevron"/></svg>
-            </summary>
-            <div class="faq-body">
-              <p>No. Direct mode uses a one-time ADB grant of <code>WRITE_SECURE_SETTINGS</code> — a normal Android permission, not superuser. Accessibility mode needs no computer at all. Neither unlocks the bootloader or flashes anything.</p>
-            </div>
+        <div class="faq-list">
+          <details class="faq-item" open>
+            <summary><span class="faq-question">Does it need root?</span><span class="faq-icon" aria-hidden="true"></span></summary>
+            <div class="faq-answer"><p>No. The Direct engine needs a one-time ADB grant of <code>WRITE_SECURE_SETTINGS</code>, which is a development permission grant, not root. The Accessibility engine needs the accessibility service enabled, nothing more.</p></div>
           </details>
-
-          <details>
-            <summary>
-              <span>Is this a React Native app?</span>
-              <svg class="icon faq-chevron" aria-hidden="true" focusable="false"><use href="#i-chevron"/></svg>
-            </summary>
-            <div class="faq-body">
-              <p>No. The app is native Kotlin/Java. An AccessibilityService has to be a native Android component, so the reset path has no WebView and no JavaScript bridge. That also keeps the APK around two to three megabytes.</p>
-            </div>
+          <details class="faq-item">
+            <summary><span class="faq-question">Why native Java instead of React Native?</span><span class="faq-icon" aria-hidden="true"></span></summary>
+            <div class="faq-answer"><p>The core is an Android <code>AccessibilityService</code>: a system-bound service with a manifest declaration, a lifecycle controlled by Android, and direct access to accessibility node trees. JavaScript cannot implement it. React Native would add a bridge and tens of megabytes while still needing the same native service. Native Java keeps the APK small and the permission behavior explicit.</p></div>
           </details>
-
-          <details>
-            <summary>
-              <span>Will my public IP always change?</span>
-              <svg class="icon faq-chevron" aria-hidden="true" focusable="false"><use href="#i-chevron"/></svg>
-            </summary>
-            <div class="faq-body">
-              <p>No. CGNAT may hand back the same address; retry or switch data off/on. The carrier decides. The app records the address before and after the cycle so you can see what happened instead of guessing.</p>
-            </div>
+          <details class="faq-item">
+            <summary><span class="faq-question">Will the IP change every time?</span><span class="faq-icon" aria-hidden="true"></span></summary>
+            <div class="faq-answer"><p>No. The carrier controls CGNAT assignment. The app automates the toggle and reports whether the address changed. CGNAT may hand back the same address; retry or toggle data off/on.</p></div>
           </details>
-
-          <details>
-            <summary>
-              <span>What happens to my hotspot?</span>
-              <svg class="icon faq-chevron" aria-hidden="true" focusable="false"><use href="#i-chevron"/></svg>
-            </summary>
-            <div class="faq-body">
-              <p>Airplane mode turns the radios off, so the hotspot will usually drop during the three-second dwell. Some devices restore it afterwards; some do not. Check after your first reset and turn it back on if needed. If a timer on your hotspot turns it off automatically, disable that timer.</p>
-            </div>
+          <details class="faq-item">
+            <summary><span class="faq-question">What happens to my hotspot?</span><span class="faq-icon" aria-hidden="true"></span></summary>
+            <div class="faq-answer"><p>Airplane mode turns it off. The optional hotspot restore is experimental and cannot guarantee that clients reconnect cleanly. You may need to turn the hotspot back on manually.</p></div>
           </details>
-
-          <details>
-            <summary>
-              <span>How much battery does it use?</span>
-              <svg class="icon faq-chevron" aria-hidden="true" focusable="false"><use href="#i-chevron"/></svg>
-            </summary>
-            <div class="faq-body">
-              <p>Little at idle: a scheduled wake-up and a short radio cycle, not a polling loop or a VPN tunnel. Aggressive OEM battery managers can delay background work, so exempt the app from battery optimisation if resets arrive late.</p>
-            </div>
+          <details class="faq-item">
+            <summary><span class="faq-question">How does it affect battery life?</span><span class="faq-icon" aria-hidden="true"></span></summary>
+            <div class="faq-answer"><p>It is not an always-on VPN or a persistent scanner. The app schedules an exact alarm and runs a short foreground service when the reset starts. Set battery usage to Unrestricted; aggressive OEM managers can still kill background work.</p></div>
           </details>
-
-          <details>
-            <summary>
-              <span>Is <code>WRITE_SECURE_SETTINGS</code> safe to grant?</span>
-              <svg class="icon faq-chevron" aria-hidden="true" focusable="false"><use href="#i-chevron"/></svg>
-            </summary>
-            <div class="faq-body">
-              <p>It is a powerful permission: it can change protected system settings, though it is not root. Grant it only to a build you trust, and check the SHA-256 first. To remove it:</p>
-              <div class="code-block">
-                <code>adb shell pm revoke dev.t9.apktools android.permission.WRITE_SECURE_SETTINGS</code>
-                <button class="copy-btn" type="button" data-copy-value="adb shell pm revoke dev.t9.apktools android.permission.WRITE_SECURE_SETTINGS" aria-label="Copy ADB revoke command">
-                  <svg class="icon" aria-hidden="true" focusable="false"><use href="#i-copy"/></svg>
-                  <span class="copy-btn-label">Copy</span>
-                </button>
-              </div>
-            </div>
+          <details class="faq-item">
+            <summary><span class="faq-question">Is the accessibility service safe?</span><span class="faq-icon" aria-hidden="true"></span></summary>
+            <div class="faq-answer"><p>It is powerful by design: Android grants broad window access while the service is enabled. The app limits inspection and clicks to the Airplane mode flow, keeps data on-device, and stores nothing remotely. Disable the service when you are not using it.</p></div>
           </details>
-
-          <details>
-            <summary>
-              <span>How do I uninstall it cleanly?</span>
-              <svg class="icon faq-chevron" aria-hidden="true" focusable="false"><use href="#i-chevron"/></svg>
-            </summary>
-            <div class="faq-body">
-              <p>Turn the Accessibility service off first, then uninstall the app. If you used ADB mode, revoke the grant with the command above; uninstalling also removes it. Your hotspot and network settings stay as they were.</p>
-            </div>
+          <details class="faq-item">
+            <summary><span class="faq-question">Can I uninstall it cleanly?</span><span class="faq-icon" aria-hidden="true"></span></summary>
+            <div class="faq-answer"><p>Yes. Uninstalling removes the app, its local logs and settings, and the ADB grant. Nothing is stored on a server.</p></div>
+          </details>
+          <details class="faq-item">
+            <summary><span class="faq-question">Why is it not on the Play Store?</span><span class="faq-icon" aria-hidden="true"></span></summary>
+            <div class="faq-answer"><p>It is a niche sideload utility that relies on an optional ADB grant and an accessibility service. Publishing a signed APK through GitHub Pages and Releases keeps distribution simple and auditable.</p></div>
           </details>
         </div>
       </div>
     </section>
 
-    <section class="section download-section" id="download" aria-labelledby="download-title">
+    <section class="section section--download" id="download" aria-labelledby="download-title">
       <div class="shell">
-        <div class="download-panel" data-reveal>
-          <div class="download-main">
-            <p class="eyebrow">Direct download</p>
-            <h2 id="download-title">Install the current build.</h2>
-            <p class="download-lede">The APK is compiled by GitHub Actions on every push, then published at a stable path. No store account, no account on this site, no update nanny.</p>
-            <div class="download-actions">
-              <a class="btn btn--lime btn--lg" id="apk-link" href="download/t9-apk-tools.apk" download>
-                <svg class="icon" aria-hidden="true" focusable="false"><use href="#i-download"/></svg>
-                Download APK
-              </a>
-              <a class="btn btn--ghost btn--lg" href="https://github.com/engrtarun/t9-apk-tools/releases" target="_blank" rel="noopener noreferrer" data-build-link="release">
-                GitHub Releases
-                <svg class="icon" aria-hidden="true" focusable="false"><use href="#i-external"/></svg>
-                <span class="sr-only">(opens in a new tab)</span>
-              </a>
-            </div>
-            <p class="download-hint">Android will ask you to allow installs from this browser. The file is signed, not downloaded from a mirror. Verify the hash below if you want to be sure.</p>
-            <p class="download-fallback">No published build yet? The latest workflow run uploads the APK to the same path. Check <a href="https://github.com/engrtarun/t9-apk-tools/actions" target="_blank" rel="noopener noreferrer">Actions</a>.</p>
-          </div>
-
-          <div class="download-meta">
-            <div class="meta-head">
-              <span>Build manifest</span>
-              <span class="meta-source">version.json</span>
-            </div>
-            <dl class="meta-list">
-              <div><dt>File</dt><dd class="mono">t9-apk-tools.apk</dd></div>
-              <div><dt>Version</dt><dd><span data-meta="version">—</span><span class="meta-dim" data-meta="version-code"></span></dd></div>
-              <div><dt>Size</dt><dd data-meta="size">—</dd></div>
-              <div><dt>Built</dt><dd data-meta="built">Built on every push</dd></div>
-              <div class="meta-wide">
-                <dt>SHA-256</dt>
-                <dd>
-                  <code id="apk-sha" data-meta="sha256">—</code>
-                  <button class="copy-btn copy-btn--icon" type="button" data-copy-target="apk-sha" aria-label="Copy APK SHA-256" disabled>
-                    <svg class="icon" aria-hidden="true" focusable="false"><use href="#i-copy"/></svg>
-                    <span class="copy-btn-label sr-only">Copy</span>
-                  </button>
-                </dd>
-              </div>
-              <div class="meta-wide">
-                <dt>Signer</dt>
-                <dd>
-                  <code id="apk-signer" data-meta="signer">—</code>
-                  <button class="copy-btn copy-btn--icon" type="button" data-copy-target="apk-signer" aria-label="Copy signing certificate SHA-256" disabled>
-                    <svg class="icon" aria-hidden="true" focusable="false"><use href="#i-copy"/></svg>
-                    <span class="copy-btn-label sr-only">Copy</span>
-                  </button>
-                </dd>
-              </div>
-              <div><dt>Commit</dt><dd><a id="commit-link" href="https://github.com/engrtarun/t9-apk-tools/commits/main" target="_blank" rel="noopener noreferrer"><span data-meta="commit">latest</span></a></dd></div>
-            </dl>
-            <p class="meta-note" data-meta="built-note">Metadata appears when the build publishes <code>version.json</code>.</p>
-          </div>
+        <div class="section-head">
+          <p class="kicker"><span>07</span> DOWNLOAD</p>
+          <h2 id="download-title">Install the current build.</h2>
+          <p class="section-intro">The APK is built, signed, and published by GitHub Actions. The manifest below is read from <code>download/version.json</code> in the same deployment.</p>
         </div>
 
-        <div class="provenance" data-reveal>
-          <div class="prov-icon"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-shield"/></svg></div>
-          <div class="prov-copy">
-            <h3>Build provenance</h3>
-            <p>The APK and <code>version.json</code> come from the same GitHub Actions workflow run, built from the public repository. To compare a download on Windows, run <code>certutil -hashfile t9-apk-tools.apk SHA256</code>; on macOS or Linux, use <code>sha256sum t9-apk-tools.apk</code>. The signing certificate must match the signer fingerprint above.</p>
+        <div class="download-panel" data-reveal>
+          <div class="download-bar">
+            <span>BUILD / ANDROID</span>
+            <span class="build-state" id="build-state">Metadata is published by CI with each build.</span>
           </div>
-          <div class="prov-links">
-            <a data-build-link="run" href="https://github.com/engrtarun/t9-apk-tools/actions" target="_blank" rel="noopener noreferrer">Latest workflow run <svg class="icon icon-xs" aria-hidden="true" focusable="false"><use href="#i-external"/></svg><span class="sr-only">(opens in a new tab)</span></a>
-            <a href="https://github.com/engrtarun/t9-apk-tools" target="_blank" rel="noopener noreferrer">Source <svg class="icon icon-xs" aria-hidden="true" focusable="false"><use href="#i-external"/></svg><span class="sr-only">(opens in a new tab)</span></a>
+
+          <div class="download-grid">
+            <div class="download-copy">
+              <h3>Direct APK</h3>
+              <p>Android 8.0 or newer. Native Java. Sideload only; allow installs from your browser or file manager when prompted.</p>
+              <a class="btn btn--lime btn--lg download-btn" id="apk-link" href="download/t9-apk-tools.apk" download data-apk-link>
+                <svg class="icon" aria-hidden="true" focusable="false"><use href="#i-download"/></svg>
+                <span>Download APK</span>
+              </a>
+              <p class="download-note">If the APK is not on this deployment yet, use GitHub Releases for the latest tagged build.</p>
+              <div class="download-links">
+                <a href="https://github.com/engrtarun/t9-apk-tools/releases" id="release-link" target="_blank" rel="noopener noreferrer">GitHub Releases<svg class="icon" aria-hidden="true" focusable="false"><use href="#i-external"/></svg><span class="sr-only"> (opens in a new tab)</span></a>
+                <a href="download/version.json">version.json</a>
+                <a href="#limits">Read the limits</a>
+              </div>
+              <ul class="download-facts">
+                <li>No account or Play Store listing</li>
+                <li>MIT licensed, source available</li>
+                <li>No analytics or ads</li>
+              </ul>
+            </div>
+
+            <div class="manifest">
+              <div class="manifest-head">
+                <h3>Build manifest</h3>
+                <span>VERIFY BEFORE INSTALL</span>
+              </div>
+              <dl class="meta-list">
+                <div class="meta-row"><dt>File</dt><dd><code id="apk-file">t9-apk-tools.apk</code></dd></div>
+                <div class="meta-row"><dt>Version</dt><dd id="apk-version">—</dd></div>
+                <div class="meta-row"><dt>Size</dt><dd id="apk-size">—</dd></div>
+                <div class="meta-row meta-row--stack">
+                  <dt>SHA-256</dt>
+                  <dd>
+                    <code id="apk-sha">—</code>
+                    <button class="copy-btn copy-btn--icon" type="button" data-copy-target="apk-sha" data-copy-name="SHA-256 checksum" aria-label="Copy SHA-256 checksum" hidden>
+                      <svg class="icon copy-icon" aria-hidden="true" focusable="false"><use href="#i-copy"/></svg>
+                      <svg class="icon check-icon" aria-hidden="true" focusable="false"><use href="#i-check"/></svg>
+                      <span class="sr-only" data-copy-label>Copy checksum</span>
+                    </button>
+                  </dd>
+                </div>
+                <div class="meta-row meta-row--stack"><dt>Signer SHA-256</dt><dd><code id="apk-signer">—</code></dd></div>
+                <div class="meta-row"><dt>Built</dt><dd><time id="apk-built">—</time></dd></div>
+                <div class="meta-row"><dt>Commit</dt><dd><a id="apk-commit" href="https://github.com/engrtarun/t9-apk-tools/commits/main" target="_blank" rel="noopener noreferrer">—</a></dd></div>
+                <div class="meta-row"><dt>Workflow</dt><dd><a id="apk-run" href="#" hidden>View run</a><span id="apk-run-empty">—</span></dd></div>
+                <div class="meta-row"><dt>Release</dt><dd><a id="apk-release" href="https://github.com/engrtarun/t9-apk-tools/releases" target="_blank" rel="noopener noreferrer">GitHub Releases<span class="sr-only"> (opens in a new tab)</span></a></dd>
+              </dl>
+            </div>
+          </div>
+
+          <div class="provenance">
+            <h3>Build provenance</h3>
+            <p>The APK and this metadata are produced by the same GitHub Actions run. Compare the SHA-256 after downloading and confirm the signer fingerprint. Builds use the project's public community signing key, so the signature is an update-compatibility check, not proof of authorship. <a href="https://github.com/engrtarun/t9-apk-tools/blob/main/SECURITY.md" target="_blank" rel="noopener noreferrer">Read SECURITY.md<span class="sr-only"> (opens in a new tab)</span></a>.</p>
+            <noscript><p>Metadata needs JavaScript to load. The direct APK link and GitHub Releases still work.</p></noscript>
           </div>
         </div>
       </div>
     </section>
+
   </main>
 
   <footer class="site-footer">
     <div class="shell">
       <div class="footer-grid">
         <div class="footer-brand">
-          <a class="brand" href="./" aria-label="T9 APK Tools home">
-            <svg class="brand-mark" viewBox="0 0 108 108" aria-hidden="true" focusable="false"><use href="#logo-mark"/></svg>
-            <span class="brand-type">
-              <span class="brand-name">T9 APK Tools</span>
-              <span class="brand-sub">Airplane automation</span>
-            </span>
+          <a class="brand" href="./" aria-label="T9 APK Tools — home">
+            <svg class="brand-mark" viewBox="0 0 108 108" aria-hidden="true" focusable="false"><use href="#t9-logo"/></svg>
+            <span class="brand-text"><strong>T9 APK TOOLS</strong><span>NETWORK RESET UTILITY</span></span>
           </a>
-          <p>No-root Airplane mode cycling for Android 8.0+. One timer, one radio cycle, and an honest log of what the carrier returned.</p>
-          <p class="footer-fine">Not affiliated with Jio, Google, or any carrier.</p>
+          <p>A timer, a toggle, and an honest before-and-after IP check. Built for Jio hotspot sessions, useful anywhere the manual routine gets old.</p>
+          <p class="footer-package">Package <code>dev.t9.apktools</code></p>
         </div>
 
         <nav class="footer-col" aria-labelledby="footer-product">
-          <h2 id="footer-product">Product</h2>
+          <h2 class="footer-heading" id="footer-product">Product</h2>
           <ul>
             <li><a href="#how-it-works">How it works</a></li>
             <li><a href="#setup">Setup</a></li>
-            <li><a href="#sequence">Reset sequence</a></li>
             <li><a href="#limits">Limits</a></li>
             <li><a href="#faq">FAQ</a></li>
             <li><a href="#download">Download</a></li>
@@ -699,31 +556,30 @@
         </nav>
 
         <nav class="footer-col" aria-labelledby="footer-project">
-          <h2 id="footer-project">Project</h2>
+          <h2 class="footer-heading" id="footer-project">Project</h2>
           <ul>
-            <li><a href="https://github.com/engrtarun/t9-apk-tools" target="_blank" rel="noopener noreferrer">GitHub repository <span class="sr-only">(opens in a new tab)</span></a></li>
-            <li><a href="https://github.com/engrtarun/t9-apk-tools#readme" target="_blank" rel="noopener noreferrer">Documentation <span class="sr-only">(opens in a new tab)</span></a></li>
-            <li><a href="https://github.com/engrtarun/t9-apk-tools/releases" target="_blank" rel="noopener noreferrer">Releases <span class="sr-only">(opens in a new tab)</span></a></li>
-            <li><a href="https://github.com/engrtarun/t9-apk-tools/issues" target="_blank" rel="noopener noreferrer">Issues <span class="sr-only">(opens in a new tab)</span></a></li>
-            <li><a href="https://github.com/engrtarun/t9-apk-tools/blob/main/LICENSE" target="_blank" rel="noopener noreferrer">MIT license <span class="sr-only">(opens in a new tab)</span></a></li>
+            <li><a href="https://github.com/engrtarun/t9-apk-tools" target="_blank" rel="noopener noreferrer">GitHub<span class="sr-only"> (opens in a new tab)</span></a></li>
+            <li><a href="https://github.com/engrtarun/t9-apk-tools#readme" target="_blank" rel="noopener noreferrer">Documentation<span class="sr-only"> (opens in a new tab)</span></a></li>
+            <li><a href="https://github.com/engrtarun/t9-apk-tools/releases" target="_blank" rel="noopener noreferrer">Releases<span class="sr-only"> (opens in a new tab)</span></a></li>
+            <li><a href="https://github.com/engrtarun/t9-apk-tools/blob/main/SECURITY.md" target="_blank" rel="noopener noreferrer">Security<span class="sr-only"> (opens in a new tab)</span></a></li>
+            <li><a href="https://github.com/engrtarun/t9-apk-tools/blob/main/LICENSE" target="_blank" rel="noopener noreferrer">MIT License<span class="sr-only"> (opens in a new tab)</span></a></li>
           </ul>
         </nav>
 
-        <div class="footer-privacy" id="privacy">
-          <h2>Privacy, plainly</h2>
-          <p>No accounts. No analytics. No telemetry. Timer state stays on the device; this site is static and sets no cookies.</p>
-          <p>The app contacts a public IP endpoint when it checks an address. The result is kept in the on-device log, not sent to this project.</p>
-          <p>Package <code>dev.t9.apktools</code> <span class="sep">·</span> <a href="https://github.com/engrtarun/t9-apk-tools" target="_blank" rel="noopener noreferrer">Source available</a>.</p>
+        <div class="footer-col footer-privacy" id="privacy">
+          <h2 class="footer-heading">Privacy</h2>
+          <p>No accounts, analytics, ads, or cookies. The app's only network calls are public-IP lookups. Logs stay on the device and can be cleared in the app.</p>
+          <a class="text-link" href="https://github.com/engrtarun/t9-apk-tools#privacy-and-security" target="_blank" rel="noopener noreferrer">Privacy note<svg class="icon" aria-hidden="true" focusable="false"><use href="#i-external"/></svg><span class="sr-only"> (opens in a new tab)</span></a>
         </div>
       </div>
 
       <div class="footer-bottom">
-        <p>© <span id="year">2026</span> T9 APK Tools <span class="sep">·</span> MIT licensed</p>
-        <p><a href="https://github.com/engrtarun/t9-apk-tools/actions" target="_blank" rel="noopener noreferrer">Built by GitHub Actions</a> <span class="sep">·</span> <a href="sitemap.xml">Sitemap</a></p>
+        <p>© <span id="year">2026</span> T9 APK Tools <span class="sep">·</span> <a href="https://github.com/engrtarun/t9-apk-tools/blob/main/LICENSE" target="_blank" rel="noopener noreferrer">MIT licensed</a></p>
+        <p><a href="https://github.com/engrtarun/t9-apk-tools/actions" target="_blank" rel="noopener noreferrer">Built by GitHub Actions</a><span class="sep">·</span><a href="sitemap.xml">Sitemap</a></p>
       </div>
     </div>
   </footer>
 
-  <p class="copy-status sr-only" id="copy-status" role="status" aria-live="polite"></p>
+  <p class="sr-only" id="copy-status" role="status" aria-live="polite"></p>
 </body>
 </html>

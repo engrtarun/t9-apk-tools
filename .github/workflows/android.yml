@@ -20,7 +20,6 @@ jobs:
     name: Build release APK
     runs-on: ubuntu-latest
     env:
-      T9_KEYSTORE_PATH: ${{ runner.temp }}/t9-release.jks
       T9_KEYSTORE_PASSWORD: t9-apk-tools
       T9_KEY_ALIAS: t9
       T9_KEY_PASSWORD: t9-apk-tools
@@ -78,6 +77,8 @@ jobs:
 
       - name: Build release APK
         shell: bash
+        env:
+          T9_KEYSTORE_PATH: ${{ runner.temp }}/t9-release.jks
         run: |
           set -euo pipefail
           gradle :app:assembleRelease --no-daemon --stacktrace --warning-mode all 2>&1 | tee "$RUNNER_TEMP/gradle-build.log"
