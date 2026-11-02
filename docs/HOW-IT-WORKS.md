@@ -465,7 +465,7 @@ address assignment.
 
 - A new public IP is not guaranteed.
 - UI automation requires an unlocked screen and an English `airplane` or
-- `flight mode` label, or a calibrated Quick Settings position.
+  `flight mode` label, or a calibrated Quick Settings position.
 - OEM Settings pages, tile layouts, and background policies vary.
 - The IP endpoints are third parties and can be slow, blocked, or wrong.
 - The app does not bypass carrier controls, root the device, or hide the

@@ -39,8 +39,8 @@ jobs:
         with:
           gradle-version: '8.8'
 
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
+      # ubuntu-latest ships with the Android SDK and accepted licenses.
+      # Let AGP resolve the exact platform/build-tools it needs.
 
       - name: Decode signing keystore
         shell: bash
@@ -94,13 +94,10 @@ jobs:
             exit 1
           fi
 
-          if [ -n "${ANDROID_HOME:-}" ] && [ -x "$ANDROID_HOME/build-tools/34.0.0/apksigner" ]; then
-            apksigner="$ANDROID_HOME/build-tools/34.0.0/apksigner"
-          else
-            apksigner="$(command -v apksigner || true)"
-          fi
+          sdk_root="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-/usr/local/lib/android/sdk}}"
+          apksigner="$(find "$sdk_root/build-tools" -type f -name apksigner 2>/dev/null | sort -V | tail -n 1)"
           if [ -z "$apksigner" ] || [ ! -x "$apksigner" ]; then
-            echo "::error::apksigner was not found in the Android SDK or on PATH."
+            echo "::error::apksigner was not found under $sdk_root/build-tools."
             exit 1
           fi
 
