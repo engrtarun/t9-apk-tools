@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://engrtarun.github.io/t9-apk-tools/sitemap.xml

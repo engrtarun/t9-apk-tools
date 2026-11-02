@@ -1,0 +1,624 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/bg_app"
+    android:fillViewport="true"
+    android:scrollbars="none">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingStart="20dp"
+        android:paddingEnd="20dp"
+        android:paddingTop="16dp"
+        android:paddingBottom="36dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <ImageButton
+                android:id="@+id/btnBack"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:background="@drawable/bg_icon_button"
+                android:contentDescription="Back"
+                android:padding="9dp"
+                android:src="@drawable/ic_back"
+                android:tint="@color/text" />
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="12dp"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="sans-serif-medium"
+                    android:text="Setup &amp; tuning"
+                    android:textColor="@color/text"
+                    android:textSize="19sp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="One-time permissions. Then it runs itself."
+                    android:textColor="@color/muted"
+                    android:textSize="10sp" />
+            </LinearLayout>
+
+            <ImageView
+                android:layout_width="38dp"
+                android:layout_height="38dp"
+                android:contentDescription="@string/app_name"
+                android:src="@drawable/ic_logo" />
+        </LinearLayout>
+
+        <LinearLayout style="@style/T9Card">
+
+            <TextView
+                style="@style/T9Label"
+                android:text="SYSTEM ACCESS" />
+
+            <LinearLayout style="@style/T9SetupRow">
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="sans-serif-medium"
+                        android:text="Accessibility service"
+                        android:textColor="@color/text"
+                        android:textSize="14sp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Taps Settings / Quick Settings for you"
+                        android:textColor="@color/muted"
+                        android:textSize="10sp" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/tvAccessStatus"
+                    style="@style/T9StatusPill"
+                    android:layout_marginEnd="8dp"
+                    android:text="OFF" />
+
+                <TextView
+                    android:id="@+id/btnAccess"
+                    style="@style/T9SmallGhost"
+                    android:text="OPEN" />
+            </LinearLayout>
+
+            <View style="@style/T9Divider" />
+
+            <LinearLayout style="@style/T9SetupRow">
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="sans-serif-medium"
+                        android:text="Notifications"
+                        android:textColor="@color/text"
+                        android:textSize="14sp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Countdown and result updates"
+                        android:textColor="@color/muted"
+                        android:textSize="10sp" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/tvNotifStatus"
+                    style="@style/T9StatusPill"
+                    android:layout_marginEnd="8dp"
+                    android:text="OFF" />
+
+                <TextView
+                    android:id="@+id/btnNotif"
+                    style="@style/T9SmallGhost"
+                    android:text="OPEN" />
+            </LinearLayout>
+
+            <View style="@style/T9Divider" />
+
+            <LinearLayout style="@style/T9SetupRow">
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="sans-serif-medium"
+                        android:text="Exact alarms"
+                        android:textColor="@color/text"
+                        android:textSize="14sp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Keeps the timer accurate in Doze"
+                        android:textColor="@color/muted"
+                        android:textSize="10sp" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/tvAlarmStatus"
+                    style="@style/T9StatusPill"
+                    android:layout_marginEnd="8dp"
+                    android:text="—" />
+
+                <TextView
+                    android:id="@+id/btnAlarm"
+                    style="@style/T9SmallGhost"
+                    android:text="OPEN" />
+            </LinearLayout>
+
+            <View style="@style/T9Divider" />
+
+            <LinearLayout style="@style/T9SetupRow">
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="sans-serif-medium"
+                        android:text="Battery optimization"
+                        android:textColor="@color/text"
+                        android:textSize="14sp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Stop Android from killing the timer"
+                        android:textColor="@color/muted"
+                        android:textSize="10sp" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/tvBatteryStatus"
+                    style="@style/T9StatusPill"
+                    android:layout_marginEnd="8dp"
+                    android:text="—" />
+
+                <TextView
+                    android:id="@+id/btnBattery"
+                    style="@style/T9SmallGhost"
+                    android:text="OPEN" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <LinearLayout style="@style/T9Card">
+
+            <TextView
+                style="@style/T9Label"
+                android:text="RESET ENGINE" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:text="How should the phone switch Airplane mode?"
+                android:textColor="@color/text"
+                android:textSize="14sp" />
+
+            <RadioGroup
+                android:id="@+id/rgStrategy"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:orientation="vertical">
+
+                <RadioButton
+                    android:id="@+id/rbAuto"
+                    android:layout_width="match_parent"
+                    android:layout_height="46dp"
+                    android:buttonTint="@color/lime"
+                    android:text="Auto (recommended)"
+                    android:textColor="@color/text"
+                    android:textSize="13sp" />
+
+                <RadioButton
+                    android:id="@+id/rbDirect"
+                    android:layout_width="match_parent"
+                    android:layout_height="46dp"
+                    android:buttonTint="@color/lime"
+                    android:text="Direct — ADB grant, instant"
+                    android:textColor="@color/text"
+                    android:textSize="13sp" />
+
+                <RadioButton
+                    android:id="@+id/rbSettings"
+                    android:layout_width="match_parent"
+                    android:layout_height="46dp"
+                    android:buttonTint="@color/lime"
+                    android:text="Accessibility — Settings UI"
+                    android:textColor="@color/text"
+                    android:textSize="13sp" />
+
+                <RadioButton
+                    android:id="@+id/rbQs"
+                    android:layout_width="match_parent"
+                    android:layout_height="46dp"
+                    android:buttonTint="@color/lime"
+                    android:text="Quick Settings tile"
+                    android:textColor="@color/text"
+                    android:textSize="13sp" />
+            </RadioGroup>
+
+            <TextView
+                android:id="@+id/tvStrategyHelp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:lineSpacingMultiplier="1.3"
+                android:text="Direct if ADB access is granted; otherwise Accessibility. Most reliable with the least setup."
+                android:textColor="@color/muted"
+                android:textSize="11sp" />
+        </LinearLayout>
+
+        <LinearLayout style="@style/T9Card">
+
+            <TextView
+                style="@style/T9Label"
+                android:text="TIMING" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Airplane mode stays on"
+                    android:textColor="@color/text"
+                    android:textSize="13sp" />
+
+                <TextView
+                    android:id="@+id/tvOffDelay"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="monospace"
+                    android:text="3 s"
+                    android:textColor="@color/lime"
+                    android:textSize="13sp" />
+            </LinearLayout>
+
+            <SeekBar
+                android:id="@+id/seekOffDelay"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:max="10"
+                android:progress="1"
+                android:progressBackgroundTint="@color/stroke"
+                android:progressTint="@color/lime"
+                android:thumbTint="@color/lime" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="2 s minimum. 3–5 s gives the radio time to detach and reattach."
+                android:textColor="@color/muted_dim"
+                android:textSize="10sp" />
+
+            <View style="@style/T9Divider" android:layout_marginTop="12dp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:paddingTop="10dp"
+                android:paddingBottom="10dp">
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Wake screen and wait for unlock"
+                        android:textColor="@color/text"
+                        android:textSize="13sp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Accessibility cannot drive a locked screen"
+                        android:textColor="@color/muted"
+                        android:textSize="10sp" />
+                </LinearLayout>
+
+                <androidx.appcompat.widget.SwitchCompat
+                    android:id="@+id/switchWake"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    app:showText="false" />
+            </LinearLayout>
+
+            <View style="@style/T9Divider" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:paddingTop="10dp"
+                android:paddingBottom="10dp">
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Verify public IP before and after"
+                        android:textColor="@color/text"
+                        android:textSize="13sp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Uses api.ipify.org; no account, no tracking"
+                        android:textColor="@color/muted"
+                        android:textSize="10sp" />
+                </LinearLayout>
+
+                <androidx.appcompat.widget.SwitchCompat
+                    android:id="@+id/switchVerify"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    app:showText="false" />
+            </LinearLayout>
+
+            <View style="@style/T9Divider" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:paddingTop="10dp">
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Re-enable Wi-Fi hotspot after reset"
+                        android:textColor="@color/text"
+                        android:textSize="13sp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Experimental. OEM settings pages vary."
+                        android:textColor="@color/muted"
+                        android:textSize="10sp" />
+                </LinearLayout>
+
+                <androidx.appcompat.widget.SwitchCompat
+                    android:id="@+id/switchHotspot"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    app:showText="false" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <LinearLayout style="@style/T9Card">
+
+            <TextView
+                style="@style/T9Label"
+                android:text="QUICK SETTINGS CALIBRATION" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:lineSpacingMultiplier="1.3"
+                android:text="The accessibility engine looks for the Airplane tile by name first. If your OEM hides the tile tree, it falls back to these coordinates. Put Airplane mode in the top-left tile, then tune."
+                android:textColor="@color/muted"
+                android:textSize="11sp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Tile X position"
+                    android:textColor="@color/text"
+                    android:textSize="13sp" />
+
+                <TextView
+                    android:id="@+id/tvQsX"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="monospace"
+                    android:text="12 %"
+                    android:textColor="@color/lime"
+                    android:textSize="13sp" />
+            </LinearLayout>
+
+            <SeekBar
+                android:id="@+id/seekQsX"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:max="100"
+                android:progress="12"
+                android:progressBackgroundTint="@color/stroke"
+                android:progressTint="@color/lime"
+                android:thumbTint="@color/lime" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Tile Y position"
+                    android:textColor="@color/text"
+                    android:textSize="13sp" />
+
+                <TextView
+                    android:id="@+id/tvQsY"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="monospace"
+                    android:text="20 %"
+                    android:textColor="@color/lime"
+                    android:textSize="13sp" />
+            </LinearLayout>
+
+            <SeekBar
+                android:id="@+id/seekQsY"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:max="100"
+                android:progress="20"
+                android:progressBackgroundTint="@color/stroke"
+                android:progressTint="@color/lime"
+                android:thumbTint="@color/lime" />
+        </LinearLayout>
+
+        <LinearLayout style="@style/T9Card">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    style="@style/T9Label"
+                    android:layout_weight="1"
+                    android:text="DIRECT MODE — OPTIONAL" />
+
+                <TextView
+                    android:id="@+id/tvDirectStatus"
+                    style="@style/T9StatusPill"
+                    android:text="NOT GRANTED" />
+            </LinearLayout>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:lineSpacingMultiplier="1.3"
+                android:text="One command from a laptop. No root. This writes the system Airplane setting directly, so the screen can stay off."
+                android:textColor="@color/muted"
+                android:textSize="11sp" />
+
+            <TextView
+                android:id="@+id/tvAdbCommand"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:background="@drawable/bg_code"
+                android:fontFamily="monospace"
+                android:lineSpacingMultiplier="1.3"
+                android:padding="12dp"
+                android:textIsSelectable="true"
+                android:text="adb shell pm grant dev.t9.apktools android.permission.WRITE_SECURE_SETTINGS"
+                android:textColor="@color/lime"
+                android:textSize="10sp" />
+
+            <TextView
+                android:id="@+id/btnCopyAdb"
+                style="@style/T9GhostButton"
+                android:layout_width="match_parent"
+                android:layout_marginTop="8dp"
+                android:text="COPY COMMAND" />
+        </LinearLayout>
+
+        <LinearLayout style="@style/T9Card">
+
+            <TextView
+                style="@style/T9Label"
+                android:text="DANGER ZONE" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:lineSpacingMultiplier="1.3"
+                android:text="A manual reset drops mobile data and may drop your Wi-Fi hotspot. Your laptop will lose internet for 20–40 seconds."
+                android:textColor="@color/muted"
+                android:textSize="11sp" />
+
+            <TextView
+                android:id="@+id/btnTestReset"
+                style="@style/T9GhostButton"
+                android:layout_width="match_parent"
+                android:layout_marginTop="10dp"
+                android:text="RUN A RESET NOW" />
+
+            <TextView
+                android:id="@+id/btnResetAll"
+                style="@style/T9GhostButton"
+                android:layout_width="match_parent"
+                android:layout_marginTop="8dp"
+                android:text="RESET ALL SETTINGS &amp; LOGS"
+                android:textColor="@color/danger" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/tvVersion"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:gravity="center"
+            android:text="T9 APK Tools 1.0.0"
+            android:textColor="@color/muted_dim"
+            android:textSize="9sp" />
+    </LinearLayout>
+</androidx.core.widget.NestedScrollView>

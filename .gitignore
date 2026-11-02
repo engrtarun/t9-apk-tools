@@ -1,0 +1,25 @@
+# Gradle
+.gradle/
+build/
+app/build/
+local.properties
+
+# IDE
+.idea/
+*.iml
+
+# OS
+.DS_Store
+
+# Generated Pages download payload. Keep the directory, not the build output.
+site/download/*
+!site/download/.gitkeep
+
+# Signing material. The base64 community key is intentionally committed.
+*.jks
+!keystore/*.jks.b64
+
+# Android tooling
+captures/
+.externalNativeBuild/
+.cxx/

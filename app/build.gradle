@@ -1,0 +1,75 @@
+plugins {
+    id 'com.android.application'
+}
+
+def versionFile = rootProject.file('VERSION')
+def appVersion = versionFile.exists() ? versionFile.text.trim() : '1.0.0'
+def runNumber = (System.getenv('GITHUB_RUN_NUMBER') ?: '1') as Integer
+def keystorePath = System.getenv('T9_KEYSTORE_PATH')
+def keystoreFile = keystorePath ? new File(keystorePath) : null
+def hasReleaseKey = keystoreFile != null && keystoreFile.exists()
+
+android {
+    namespace 'dev.t9.apktools'
+    compileSdk 34
+
+    defaultConfig {
+        applicationId 'dev.t9.apktools'
+        minSdk 26
+        targetSdk 34
+        versionCode Math.max(1, runNumber)
+        versionName appVersion
+        vectorDrawables.useSupportLibrary = true
+        resourceConfigurations += ['en']
+    }
+
+    signingConfigs {
+        if (hasReleaseKey) {
+            release {
+                storeFile keystoreFile
+                storePassword System.getenv('T9_KEYSTORE_PASSWORD')
+                keyAlias System.getenv('T9_KEY_ALIAS')
+                keyPassword System.getenv('T9_KEY_PASSWORD')
+            }
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'),
+                    'proguard-rules.pro'
+            // CI decodes the committed community keystore; local builds fall back to debug.
+            if (hasReleaseKey) {
+                signingConfig signingConfigs.release
+            } else {
+                signingConfig signingConfigs.debug
+            }
+        }
+        debug {
+            applicationIdSuffix '.debug'
+            versionNameSuffix '-debug'
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    lint {
+        abortOnError false
+        checkReleaseBuilds false
+    }
+
+    packaging {
+        resources.excludes += ['META-INF/*.kotlin_module']
+    }
+}
+
+dependencies {
+    implementation 'androidx.appcompat:appcompat:1.6.1'
+    implementation 'androidx.core:core:1.12.0'
+    implementation 'com.google.android.material:material:1.11.0'
+}

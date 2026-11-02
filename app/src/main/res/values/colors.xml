@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="bg">#0A0D09</color>
+    <color name="bg_elev">#10150E</color>
+    <color name="surface">#121810</color>
+    <color name="surface_2">#1A2116</color>
+    <color name="stroke">#26301F</color>
+    <color name="stroke_bright">#35452B</color>
+    <color name="lime">#C8FF2E</color>
+    <color name="lime_bright">#D9FF5C</color>
+    <color name="lime_dim">#9BD11F</color>
+    <color name="lime_soft">#33C8FF2E</color>
+    <color name="text">#EEF6E6</color>
+    <color name="muted">#93A487</color>
+    <color name="muted_dim">#66755E</color>
+    <color name="danger">#FF6B6B</color>
+    <color name="warn">#FFC857</color>
+    <color name="ok">#7CFF9B</color>
+    <color name="icon_bg">#12170F</color>
+    <color name="white">#F2F5EC</color>
+    <color name="transparent">#00000000</color>
+</resources>

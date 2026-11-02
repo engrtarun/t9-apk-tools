@@ -1,0 +1,100 @@
+name: Bug report
+description: Report a problem with T9 APK Tools
+title: "[Bug]: "
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a problem. Do not include phone numbers, public IP addresses, account details, or other personal data. Security issues must be reported privately; see SECURITY.md.
+
+  - type: input
+    id: app_version
+    attributes:
+      label: App version
+      description: Shown in the app, or in version.json on the download page.
+      placeholder: "1.0.0"
+    validations:
+      required: true
+
+  - type: input
+    id: android_version
+    attributes:
+      label: Android version
+      description: Settings > About phone > Android version.
+      placeholder: "Android 14"
+    validations:
+      required: true
+
+  - type: input
+    id: device_oem
+    attributes:
+      label: Device and OEM
+      description: Model and manufacturer skin, if any.
+      placeholder: "Samsung Galaxy A54, One UI 6"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: engine
+    attributes:
+      label: Engine
+      description: Which engine was selected when the problem occurred?
+      options:
+        - Auto
+        - Direct (ADB)
+        - Accessibility (Settings page)
+        - Quick Settings
+        - Not sure
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: List the smallest set of steps that shows the problem.
+      placeholder: |
+        1. Set the countdown to 5 minutes
+        2. Select Auto
+        3. Lock the phone and wait
+        4. ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+      description: Include the exact message shown by the app, if any.
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: App logs
+      description: Copy from the app's log screen. Remove public IP addresses, phone numbers, and anything else personal.
+      render: text
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Checklist
+      options:
+        - label: I searched existing issues and did not find a duplicate.
+          required: true
+        - label: I removed personal data from this report.
+          required: true
+        - label: This is not a security vulnerability. Security reports go through the private process in SECURITY.md.
+          required: true

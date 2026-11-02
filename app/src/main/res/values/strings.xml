@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">T9 APK Tools</string>
+    <string name="accessibility_label">T9 Network Reset</string>
+    <string name="accessibility_description">T9 APK Tools uses this service only when your timer ends. It opens Settings or Quick Settings, taps the Airplane mode switch, waits, then taps it back. It does not read, store, or share personal data. You can turn it off at any time in Android Settings.</string>
+    <string name="channel_timer">Reset countdown</string>
+    <string name="channel_result">Reset results</string>
+    <string name="channel_alert">Attention needed</string>
+</resources>

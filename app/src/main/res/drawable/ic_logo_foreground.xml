@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- soft neon halo -->
+    <path
+        android:pathData="M30,80 L78,30"
+        android:strokeColor="#1AC8FF2E"
+        android:strokeWidth="26"
+        android:strokeLineCap="round" />
+    <path
+        android:pathData="M54,52 L31,26"
+        android:strokeColor="#1AC8FF2E"
+        android:strokeWidth="24"
+        android:strokeLineCap="round" />
+    <path
+        android:pathData="M54,52 L28,41"
+        android:strokeColor="#1AC8FF2E"
+        android:strokeWidth="24"
+        android:strokeLineCap="round" />
+    <path
+        android:pathData="M54,52 L71,81"
+        android:strokeColor="#1AC8FF2E"
+        android:strokeWidth="24"
+        android:strokeLineCap="round" />
+    <path
+        android:pathData="M54,52 L84,62"
+        android:strokeColor="#1AC8FF2E"
+        android:strokeWidth="24"
+        android:strokeLineCap="round" />
+
+    <!-- screwdriver: outline -->
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M30,80 L45,65"
+        android:strokeColor="#0B0F08"
+        android:strokeWidth="19"
+        android:strokeLineCap="round" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M45,64 L78,31"
+        android:strokeColor="#0B0F08"
+        android:strokeWidth="10"
+        android:strokeLineCap="round" />
+
+    <!-- screwdriver: lime handle -->
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M30,80 L45,65"
+        android:strokeColor="@color/lime"
+        android:strokeWidth="15"
+        android:strokeLineCap="round" />
+
+    <!-- ferrule -->
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M44,67 L48,63"
+        android:strokeColor="#20261B"
+        android:strokeWidth="16"
+        android:strokeLineCap="butt" />
+
+    <!-- screwdriver: steel shaft and flat tip -->
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M47,62 L78,31"
+        android:strokeColor="@color/white"
+        android:strokeWidth="5.5"
+        android:strokeLineCap="round" />
+    <path
+        android:fillColor="@color/white"
+        android:pathData="M75,25 L82,23 L84,30 L78,34 Z" />
+
+    <!-- grip slots -->
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M31,74 L36,79"
+        android:strokeColor="#0B0F08"
+        android:strokeWidth="2.2"
+        android:strokeLineCap="round" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M35.5,69.5 L40.5,74.5"
+        android:strokeColor="#0B0F08"
+        android:strokeWidth="2.2"
+        android:strokeLineCap="round" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M40,65 L45,70"
+        android:strokeColor="#0B0F08"
+        android:strokeWidth="2.2"
+        android:strokeLineCap="round" />
+
+    <!-- pliers: outline -->
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M54,52 L31,26"
+        android:strokeColor="#0B0F08"
+        android:strokeWidth="19"
+        android:strokeLineCap="round" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M54,52 L28,41"
+        android:strokeColor="#0B0F08"
+        android:strokeWidth="19"
+        android:strokeLineCap="round" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M54,52 L71,81"
+        android:strokeColor="#0B0F08"
+        android:strokeWidth="19"
+        android:strokeLineCap="round" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M54,52 L84,62"
+        android:strokeColor="#0B0F08"
+        android:strokeWidth="19"
+        android:strokeLineCap="round" />
+
+    <!-- pliers: jaws -->
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M54,52 L31,26"
+        android:strokeColor="@color/lime"
+        android:strokeWidth="14"
+        android:strokeLineCap="round" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M54,52 L28,41"
+        android:strokeColor="@color/lime"
+        android:strokeWidth="14"
+        android:strokeLineCap="round" />
+    <path
+        android:fillColor="@color/lime"
+        android:pathData="M29,24 L35,22 L38,31 L32,33 Z" />
+    <path
+        android:fillColor="@color/lime"
+        android:pathData="M25,39 L31,36 L36,45 L30,47 Z" />
+
+    <!-- jaws serration -->
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M35,30 L38,33"
+        android:strokeColor="#0B0F08"
+        android:strokeWidth="2"
+        android:strokeLineCap="round" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M32,43 L35,40"
+        android:strokeColor="#0B0F08"
+        android:strokeWidth="2"
+        android:strokeLineCap="round" />
+
+    <!-- pliers: handles -->
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M54,52 L71,81"
+        android:strokeColor="@color/lime"
+        android:strokeWidth="14"
+        android:strokeLineCap="round" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M54,52 L82,61"
+        android:strokeColor="#3A4145"
+        android:strokeWidth="14"
+        android:strokeLineCap="round" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M81,60.5 L87,63.5"
+        android:strokeColor="@color/lime"
+        android:strokeWidth="14"
+        android:strokeLineCap="round" />
+
+    <!-- pivot -->
+    <path
+        android:fillColor="#12170F"
+        android:pathData="M54,44 a8,8 0 1,0 0,16 a8,8 0 1,0 0,-16"
+        android:strokeColor="@color/lime"
+        android:strokeWidth="3" />
+    <path
+        android:fillColor="@color/white"
+        android:pathData="M54,49 a3,3 0 1,0 0,6 a3,3 0 1,0 0,-6" />
+</vector>
