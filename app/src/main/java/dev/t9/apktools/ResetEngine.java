@@ -31,7 +31,29 @@ public final class ResetEngine {
         try {
             listener.log(LogStore.INFO, "Reset cycle started");
 
-            if (Prefs.wakeScreen(context)) {
+            String strategy = Prefs.strategy(context);
+            boolean direct = canWriteDirect(context);
+            boolean accessibility = AccessibilityResetService.isEnabled(context);
+
+            if (Prefs.STRATEGY_DIRECT.equals(strategy) && !direct) {
+                result.message = "ADB permission is missing. Open Setup and copy the grant command.";
+                listener.log(LogStore.ERR, result.message);
+                return result;
+            }
+            if (!direct && !accessibility) {
+                result.message = "No engine enabled. Turn on Accessibility in Setup, or grant ADB access.";
+                listener.log(LogStore.ERR, result.message);
+                return result;
+            }
+
+            /* The ADB engine writes the setting directly, so it works on a locked
+               phone. Accessibility has to drive the visible Settings UI, which a
+               secure keyguard will always block. Decide that before wasting time. */
+            boolean needsUnlockedScreen = !direct
+                    || Prefs.STRATEGY_SETTINGS.equals(strategy)
+                    || Prefs.STRATEGY_QS.equals(strategy);
+
+            if (needsUnlockedScreen && Prefs.wakeScreen(context)) {
                 PowerManager power = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
                 if (power != null) {
                     screenLock = power.newWakeLock(
@@ -43,7 +65,14 @@ public final class ResetEngine {
                 }
             }
 
-            if (isLocked(context)) {
+            if (needsUnlockedScreen && isLocked(context)) {
+                if (isDeviceSecure(context)) {
+                    result.message = "Phone is locked with a PIN or pattern. Accessibility cannot "
+                            + "unlock it — grant ADB access in Setup, or disable the lock screen "
+                            + "for this run.";
+                    listener.log(LogStore.ERR, result.message);
+                    return result;
+                }
                 listener.log(LogStore.WARN,
                         "Phone locked — unlock to continue (waiting up to 90 s)");
                 Notifications.showUnlock(context);
@@ -57,16 +86,17 @@ public final class ResetEngine {
             Notifications.cancelUnlock(context);
 
             if (Prefs.verifyIp(context)) {
+                long beforeAt = System.currentTimeMillis();
                 result.beforeIp = IpUtil.fetch();
                 if (result.beforeIp != null) {
                     Prefs.setPrevIp(context, result.beforeIp);
+                    IpHistory.add(context, result.beforeIp, IpHistory.KIND_BEFORE, beforeAt);
                     listener.log(LogStore.INFO, "Public IP before: " + result.beforeIp);
                 } else {
                     listener.log(LogStore.WARN, "Could not read the public IP before reset");
                 }
             }
 
-            String strategy = Prefs.strategy(context);
             boolean toggled = false;
             switch (strategy) {
                 case Prefs.STRATEGY_DIRECT:
@@ -157,6 +187,8 @@ public final class ResetEngine {
                         listener.log(LogStore.INFO, "Public IP after: " + result.afterIp);
                     }
                     Prefs.setLastIp(context, result.afterIp);
+                    IpHistory.add(context, result.afterIp, IpHistory.KIND_AFTER,
+                            System.currentTimeMillis());
                 } else {
                     listener.log(LogStore.WARN, "Could not read the public IP after reset");
                 }
@@ -288,6 +320,13 @@ public final class ResetEngine {
         KeyguardManager keyguard = (KeyguardManager) context.getSystemService(
                 Context.KEYGUARD_SERVICE);
         return keyguard != null && keyguard.isKeyguardLocked();
+    }
+
+    /** True when the lock screen needs a PIN, pattern, password or biometric. */
+    private static boolean isDeviceSecure(Context context) {
+        KeyguardManager keyguard = (KeyguardManager) context.getSystemService(
+                Context.KEYGUARD_SERVICE);
+        return keyguard != null && keyguard.isDeviceSecure();
     }
 
     private static boolean waitForUnlock(Context context, long timeoutMs) {

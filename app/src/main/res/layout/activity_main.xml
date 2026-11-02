@@ -269,7 +269,7 @@
                 <TextView
                     android:id="@+id/tvIpBadge"
                     style="@style/T9StatusPill"
-                    android:text="UNKNOWN" />
+                    android:text="NOT CHECKED" />
 
                 <ImageButton
                     android:id="@+id/btnRefreshIp"
@@ -287,7 +287,7 @@
                 android:id="@+id/tvIp"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="6dp"
+                android:layout_marginTop="2dp"
                 android:fontFamily="monospace"
                 android:fontFeatureSettings="tnum"
                 android:letterSpacing="-0.02"
@@ -296,14 +296,218 @@
                 android:textSize="30sp" />
 
             <TextView
-                android:id="@+id/tvIpPrev"
+                android:id="@+id/tvIpMeta"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="2dp"
+                android:text="No check yet"
+                android:textColor="@color/muted_dim"
+                android:textSize="11sp" />
+
+            <LinearLayout
+                android:id="@+id/ipCompare"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:background="@drawable/bg_compare"
+                android:orientation="vertical"
+                android:paddingStart="12dp"
+                android:paddingTop="10dp"
+                android:paddingEnd="12dp"
+                android:paddingBottom="11dp"
+                android:visibility="gone">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:fontFamily="sans-serif-medium"
+                        android:letterSpacing="0.1"
+                        android:text="LAST RESET"
+                        android:textAllCaps="true"
+                        android:textColor="@color/muted_dim"
+                        android:textSize="9sp" />
+
+                    <TextView
+                        android:id="@+id/tvIpVerdict"
+                        style="@style/T9StatusPill"
+                        android:text="CHANGED" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:baselineAligned="false"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:fontFamily="sans-serif-medium"
+                            android:letterSpacing="0.1"
+                            android:text="BEFORE"
+                            android:textAllCaps="true"
+                            android:textColor="@color/muted_dim"
+                            android:textSize="9sp" />
+
+                        <TextView
+                            android:id="@+id/tvIpBefore"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:ellipsize="end"
+                            android:fontFamily="monospace"
+                            android:singleLine="true"
+                            android:text="—"
+                            android:textColor="@color/text"
+                            android:textSize="14sp" />
+
+                        <TextView
+                            android:id="@+id/tvIpBeforeAt"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:fontFamily="monospace"
+                            android:text=""
+                            android:textColor="@color/muted_dim"
+                            android:textSize="9sp" />
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/tvIpArrow"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="10dp"
+                        android:layout_marginEnd="10dp"
+                        android:text="→"
+                        android:textColor="@color/lime"
+                        android:textSize="18sp" />
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:fontFamily="sans-serif-medium"
+                            android:letterSpacing="0.1"
+                            android:text="AFTER"
+                            android:textAllCaps="true"
+                            android:textColor="@color/muted_dim"
+                            android:textSize="9sp" />
+
+                        <TextView
+                            android:id="@+id/tvIpAfter"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:ellipsize="end"
+                            android:fontFamily="monospace"
+                            android:singleLine="true"
+                            android:text="—"
+                            android:textColor="@color/lime"
+                            android:textSize="14sp" />
+
+                        <TextView
+                            android:id="@+id/tvIpAfterAt"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:fontFamily="monospace"
+                            android:text=""
+                            android:textColor="@color/muted_dim"
+                            android:textSize="9sp" />
+                    </LinearLayout>
+                </LinearLayout>
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/tvIpPrev"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
                 android:lineSpacingMultiplier="1.3"
-                android:text="No IP check yet. The phone checks only when you ask or after a reset."
+                android:text="Tap refresh. The app also reads the address once when it opens."
                 android:textColor="@color/muted"
                 android:textSize="12sp" />
+
+            <LinearLayout
+                android:id="@+id/btnIpDetails"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginTop="10dp"
+                android:background="@drawable/bg_btn_ghost"
+                android:clickable="true"
+                android:contentDescription="Show the recent public IP checks"
+                android:focusable="true"
+                android:gravity="center"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/tvIpDetailsLabel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="sans-serif-medium"
+                    android:letterSpacing="0.08"
+                    android:text="DETAILS"
+                    android:textAllCaps="true"
+                    android:textColor="@color/text"
+                    android:textSize="10sp" />
+
+                <ImageView
+                    android:id="@+id/ivIpChevron"
+                    android:layout_width="16dp"
+                    android:layout_height="16dp"
+                    android:layout_marginStart="6dp"
+                    android:contentDescription="@null"
+                    android:src="@drawable/ic_chevron"
+                    android:tint="@color/muted" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/ipDetailsPanel"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <LinearLayout
+                    android:id="@+id/ipDetailsList"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:lineSpacingMultiplier="1.3"
+                    android:text="Read from api.ipify.org, icanhazip.com and ifconfig.me. Entries stay on this phone."
+                    android:textColor="@color/muted_dim"
+                    android:textSize="10sp" />
+
+                <TextView
+                    android:id="@+id/btnAllRuns"
+                    style="@style/T9GhostButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:layout_marginTop="10dp"
+                    android:text="ALL RESETS" />
+            </LinearLayout>
         </LinearLayout>
 
         <LinearLayout style="@style/T9Card">

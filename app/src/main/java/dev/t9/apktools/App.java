@@ -16,6 +16,7 @@ public class App extends Application {
         instance = this;
         io = Executors.newCachedThreadPool();
         LogStore.init(this);
+        IpHistory.init(this);
         Notifications.createChannels(this);
     }
 

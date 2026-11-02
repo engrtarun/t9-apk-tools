@@ -33,7 +33,7 @@ The app has no code for:
   clipboard when you tap **COPY COMMAND**);
 - background screenshot capture or screen recording.
 
-The APK's only libraries are AndroidX AppCompat, AndroidX Core, and Material
+The app declares only AndroidX AppCompat, AndroidX Core, and Material
 Components. There is no analytics or ads dependency in `app/build.gradle`.
 
 ## Network calls

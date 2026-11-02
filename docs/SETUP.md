@@ -124,9 +124,10 @@ of confusion.
 8. Return to the app. The **Accessibility service** pill should read `ON`, and
    the main screen chip should read `ACCESSIBILITY ON`.
 
-The service is used only during a reset. It does not process events in the
-background and does not store or transmit window content. The trade-off is
-still broad: while enabled, Android lets it inspect window content. Turn it off
+The service performs window traversal only during a reset. It does not process
+events in the background and does not store or transmit window content. The
+trade-off is still broad: while enabled, Android lets it inspect window content.
+Turn it off
 in Android Settings when you no longer need it. See
 [PRIVACY.md](PRIVACY.md#accessibility-service).
 
@@ -155,7 +156,7 @@ Open **SETUP** → **RESET ENGINE**. The options are:
 | Option | What it does | Needs |
 | --- | --- | --- |
 | **Auto (recommended)** | Direct if granted; otherwise Quick Settings, then Settings UI | Direct grant or accessibility |
-| **Direct — ADB grant, instant** | Writes the Airplane secure setting | One-time ADB grant |
+| **Direct — ADB grant, instant** | Writes the Airplane secure setting; no UI automation | One-time ADB grant; the current build still waits for the keyguard |
 | **Accessibility — Settings UI** | Opens the Airplane mode page and clicks the switch | Accessibility on, phone unlocked |
 | **Quick Settings tile** | Opens the shade and clicks the tile, with percentage fallback | Accessibility on, phone unlocked, tile visible |
 

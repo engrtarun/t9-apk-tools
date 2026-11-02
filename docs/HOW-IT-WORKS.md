@@ -63,8 +63,8 @@ fires; the alarm is the wake-up mechanism.
    access, it falls back to `setAndAllowWhileIdle`, which is inexact and may be
    deferred by Doze.
 3. **Countdown.** `ResetService` calls `startForeground()` with a low-importance
-   notification, updates the ring and notification every second, and refreshes
-   the notification text every five ticks.
+   notification. The main screen updates its ring every second; the service
+   refreshes the notification text every five ticks.
 4. **Alarm.** `AlarmReceiver` receives the broadcast. If it fired more than 3
    seconds early, it reschedules. Otherwise it starts `ResetService` with
    `ACTION_RUN_NOW`.
@@ -168,7 +168,7 @@ The UI names differ slightly from the internal strategy values:
 | UI option | Internal value | Mechanism | Screen requirement |
 | --- | --- | --- | --- |
 | Auto (recommended) | `auto` | Direct if granted; otherwise Quick Settings, then Settings UI | Depends on the chosen path |
-| Direct — ADB grant, instant | `direct` | Writes `Settings.Global.AIRPLANE_MODE_ON` | Screen can be off, but a locked keyguard still pauses the run |
+| Direct — ADB grant, instant | `direct` | Writes `Settings.Global.AIRPLANE_MODE_ON` | No UI automation; screen can be off if Wake screen is off, but a locked keyguard still pauses the run |
 | Accessibility — Settings UI | `settings` | Opens the Airplane mode Settings page and clicks the switch | Unlocked, screen on |
 | Quick Settings tile | `qs` | Opens the Quick Settings shade and clicks the tile, then taps calibrated coordinates if needed | Unlocked, screen on |
 
@@ -429,7 +429,7 @@ does not fake a change.
   `setAndAllowWhileIdle()` and the timer can drift.
 - **Doze.** `RTC_WAKEUP` wakes the device for the alarm, but Doze rate-limits
   while-idle alarms. Android may defer alarms set very close together. A 15
-  minute default is deliberately above the usual while-idle throttle; shorter
+  minute default is above the usual while-idle throttle; shorter
   intervals are more likely to be late.
 - **Boot.** `BootReceiver` handles `BOOT_COMPLETED` and
   `MY_PACKAGE_REPLACED`. If the target is still in the future, it re-arms the

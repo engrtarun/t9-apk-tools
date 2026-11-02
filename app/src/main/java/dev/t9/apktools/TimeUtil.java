@@ -17,6 +17,10 @@ public final class TimeUtil {
         return new SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(new Date(millis));
     }
 
+    public static String dayStamp(long millis) {
+        return new SimpleDateFormat("dd MMM", Locale.getDefault()).format(new Date(millis));
+    }
+
     public static String countdown(long millis) {
         long totalSeconds = Math.max(0L, millis / 1000L);
         long hours = totalSeconds / 3600L;

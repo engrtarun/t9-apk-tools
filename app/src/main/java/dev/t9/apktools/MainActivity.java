@@ -13,10 +13,13 @@ import android.os.Handler;
 import android.os.Looper;
 import android.provider.Settings;
 import android.text.InputType;
+import android.text.TextUtils;
+import android.view.Gravity;
 import android.view.HapticFeedbackConstants;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.FrameLayout;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -31,6 +34,7 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import java.util.List;
 import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity {
@@ -72,6 +76,19 @@ public class MainActivity extends AppCompatActivity {
     private TextView tvIpBadge;
     private TextView tvIp;
     private TextView tvIpPrev;
+    private TextView tvIpMeta;
+    private View ipCompare;
+    private TextView tvIpBefore;
+    private TextView tvIpBeforeAt;
+    private TextView tvIpAfter;
+    private TextView tvIpAfterAt;
+    private TextView tvIpVerdict;
+    private TextView tvIpArrow;
+    private View btnIpDetails;
+    private TextView tvIpDetailsLabel;
+    private ImageView ivIpChevron;
+    private View ipDetailsPanel;
+    private LinearLayout ipDetailsList;
     private View btnRefreshIp;
     private LinearLayout logContainer;
     private TextView btnClearLog;
@@ -108,6 +125,14 @@ public class MainActivity extends AppCompatActivity {
         }
 
         LogStore.setListener(() -> renderLogs(false));
+        IpHistory.setListener(this::onIpHistoryLoaded);
+    }
+
+    private void onIpHistoryLoaded() {
+        if (isFinishing() || isDestroyed()) {
+            return;
+        }
+        runOnUiThread(this::renderIpCard);
     }
 
     private void bindViews() {
@@ -125,6 +150,19 @@ public class MainActivity extends AppCompatActivity {
         tvIpBadge = findViewById(R.id.tvIpBadge);
         tvIp = findViewById(R.id.tvIp);
         tvIpPrev = findViewById(R.id.tvIpPrev);
+        tvIpMeta = findViewById(R.id.tvIpMeta);
+        ipCompare = findViewById(R.id.ipCompare);
+        tvIpBefore = findViewById(R.id.tvIpBefore);
+        tvIpBeforeAt = findViewById(R.id.tvIpBeforeAt);
+        tvIpAfter = findViewById(R.id.tvIpAfter);
+        tvIpAfterAt = findViewById(R.id.tvIpAfterAt);
+        tvIpVerdict = findViewById(R.id.tvIpVerdict);
+        tvIpArrow = findViewById(R.id.tvIpArrow);
+        btnIpDetails = findViewById(R.id.btnIpDetails);
+        tvIpDetailsLabel = findViewById(R.id.tvIpDetailsLabel);
+        ivIpChevron = findViewById(R.id.ivIpChevron);
+        ipDetailsPanel = findViewById(R.id.ipDetailsPanel);
+        ipDetailsList = findViewById(R.id.ipDetailsList);
         btnRefreshIp = findViewById(R.id.btnRefreshIp);
         logContainer = findViewById(R.id.logContainer);
         btnClearLog = findViewById(R.id.btnClearLog);
@@ -188,7 +226,17 @@ public class MainActivity extends AppCompatActivity {
 
         btnRefreshIp.setOnClickListener(v -> {
             v.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP);
-            refreshIp();
+            refreshIp(false);
+        });
+
+        btnIpDetails.setOnClickListener(v -> {
+            v.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP);
+            toggleIpDetails();
+        });
+
+        findViewById(R.id.btnAllRuns).setOnClickListener(v -> {
+            v.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP);
+            startActivity(new Intent(this, HistoryActivity.class));
         });
 
         btnClearLog.setOnClickListener(v -> {
@@ -221,6 +269,7 @@ public class MainActivity extends AppCompatActivity {
         syncResultCard();
         renderLogs(false);
         updateUi();
+        maybeAutoCheckIp();
         handler.removeCallbacks(ticker);
         handler.post(ticker);
     }
@@ -235,6 +284,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         LogStore.setListener(null);
+        IpHistory.setListener(null);
         handler.removeCallbacksAndMessages(null);
         super.onDestroy();
     }
@@ -244,6 +294,10 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void startTimer() {
+        if (!hasEngine()) {
+            showEngineDialog();
+            return;
+        }
         int minutes = Prefs.durationMin(this);
         long target = System.currentTimeMillis() + minutes * 60_000L;
         Prefs.setCycleMin(this, minutes);
@@ -325,6 +379,10 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void confirmResetNow() {
+        if (!hasEngine()) {
+            showEngineDialog();
+            return;
+        }
         new MaterialAlertDialogBuilder(this)
                 .setTitle("Run a reset now?")
                 .setMessage("Mobile data and the hotspot will drop for roughly 20–40 seconds. "
@@ -335,6 +393,23 @@ public class MainActivity extends AppCompatActivity {
                     LogStore.add(LogStore.INFO, "Manual reset requested");
                     updateUi();
                 })
+                .show();
+    }
+
+    private boolean hasEngine() {
+        return AccessibilityResetService.isEnabled(this)
+                || ResetEngine.canWriteDirect(this);
+    }
+
+    private void showEngineDialog() {
+        new MaterialAlertDialogBuilder(this)
+                .setTitle("No engine is enabled")
+                .setMessage("The app needs one way to toggle Airplane mode. "
+                        + "Turn on the Accessibility service in Setup, or grant the one-time ADB "
+                        + "permission. ADB is the only option that works on a locked phone.")
+                .setNegativeButton("Cancel", null)
+                .setPositiveButton("Open Setup", (dialog, which) ->
+                        startActivity(new Intent(this, SetupActivity.class)))
                 .show();
     }
 
@@ -487,65 +562,192 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void syncResultCard() {
-        long runAt = Prefs.lastRunAt(this);
-        lastSyncedRunAt = runAt;
-        if (runAt <= 0L) {
-            return;
-        }
-        String after = Prefs.lastIp(this);
-        String before = Prefs.prevIp(this);
-        if (after != null) {
-            tvIp.setText(after);
-            setPill(tvIpBadge, Prefs.lastChanged(this) ? "CHANGED" : "CURRENT",
-                    Prefs.lastChanged(this) ? 1 : 0);
-        }
-        if (before != null && after != null) {
-            if (before.equals(after)) {
-                tvIpPrev.setText("Same address before and after • the carrier may reuse it "
-                        + "(CGNAT). Retry, or toggle mobile data.");
-            } else {
-                tvIpPrev.setText("Previous " + before + " • the reset produced a new address.");
-            }
+        lastSyncedRunAt = Prefs.lastRunAt(this);
+        renderIpCard();
+    }
+
+    /**
+     * Draws the Public IP card from the on-device ledger. Every value shown here was
+     * fetched from the network, so the card can answer "what was it before, and what
+     * did the reset actually produce".
+     */
+    private void renderIpCard() {
+        List<IpHistory.Entry> history = IpHistory.all(this);
+        IpHistory.Entry latest = history.isEmpty() ? null : history.get(0);
+        IpHistory.Entry after = IpHistory.newestOf(this, IpHistory.KIND_AFTER);
+        IpHistory.Entry before = IpHistory.partnerBefore(this);
+
+        if (latest != null) {
+            tvIp.setText(latest.ip);
+            tvIpMeta.setText("Checked " + TimeUtil.clockTime(latest.at)
+                    + " · stored on this phone only");
         } else {
-            String message = Prefs.lastMessage(this);
-            if (message != null) {
-                tvIpPrev.setText(message);
+            tvIp.setText("—");
+            tvIpMeta.setText("No check yet");
+        }
+
+        if (after != null && before != null) {
+            boolean changed = !before.ip.equals(after.ip);
+            ipCompare.setVisibility(View.VISIBLE);
+            tvIpBefore.setText(before.ip);
+            tvIpBeforeAt.setText(TimeUtil.clockTime(before.at));
+            tvIpAfter.setText(after.ip);
+            tvIpAfterAt.setText(TimeUtil.clockTime(after.at));
+            setPill(tvIpVerdict, changed ? "CHANGED" : "SAME", changed ? 1 : 2);
+            setPill(tvIpBadge, changed ? "CHANGED" : "SAME", changed ? 1 : 2);
+            tvIpArrow.setTextColor(ContextCompat.getColor(this,
+                    changed ? R.color.lime : R.color.muted_dim));
+            tvIpPrev.setText(changed
+                    ? "Both readings came from the carrier, not from this phone's settings."
+                    : "The carrier reused the same address (CGNAT). Retry, or toggle mobile data.");
+        } else {
+            ipCompare.setVisibility(View.GONE);
+            if (latest == null) {
+                setPill(tvIpBadge, "NOT CHECKED", 0);
+                tvIpPrev.setText("Tap refresh. The app also reads the address once when it opens.");
+            } else if (IpHistory.KIND_BEFORE.equals(latest.kind)) {
+                setPill(tvIpBadge, "BEFORE", 0);
+                tvIpPrev.setText("This was the address before a reset. The after value appears "
+                        + "when the reset finishes.");
+            } else {
+                setPill(tvIpBadge, "CURRENT", 0);
+                tvIpPrev.setText("Read from the carrier edge. Tap refresh to read it again.");
             }
+        }
+
+        if (ipDetailsPanel.getVisibility() == View.VISIBLE) {
+            renderIpDetails(history);
         }
     }
 
-    private void refreshIp() {
+    private void maybeAutoCheckIp() {
         if (Prefs.busy(this)) {
-            Toast.makeText(this, "Wait for the reset to finish", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        IpHistory.Entry latest = IpHistory.newest(this);
+        long age = latest == null ? Long.MAX_VALUE : System.currentTimeMillis() - latest.at;
+        if (age < 5 * 60 * 1000L) {
+            return;
+        }
+        if (!IpUtil.isOnline(this)) {
+            return;
+        }
+        refreshIp(true);
+    }
+
+    private void toggleIpDetails() {
+        boolean open = ipDetailsPanel.getVisibility() != View.VISIBLE;
+        ipDetailsPanel.setVisibility(open ? View.VISIBLE : View.GONE);
+        ivIpChevron.animate().rotation(open ? 180f : 0f).setDuration(160).start();
+        tvIpDetailsLabel.setText(open ? "HIDE" : "DETAILS");
+        btnIpDetails.setContentDescription(open
+                ? "Hide the recent public IP checks"
+                : "Show the recent public IP checks");
+        if (open) {
+            renderIpDetails(IpHistory.all(this));
+        }
+    }
+
+    private void renderIpDetails(List<IpHistory.Entry> history) {
+        ipDetailsList.removeAllViews();
+        if (history.isEmpty()) {
+            TextView empty = new TextView(this);
+            empty.setText("Nothing recorded yet.");
+            empty.setTextSize(11);
+            empty.setTextColor(ContextCompat.getColor(this, R.color.muted_dim));
+            empty.setPadding(0, dp(6), 0, dp(6));
+            ipDetailsList.addView(empty);
+            return;
+        }
+        int shown = Math.min(history.size(), 8);
+        for (int i = 0; i < shown; i++) {
+            ipDetailsList.addView(ipDetailRow(history.get(i)));
+        }
+    }
+
+    private View ipDetailRow(IpHistory.Entry entry) {
+        LinearLayout row = new LinearLayout(this);
+        row.setOrientation(LinearLayout.HORIZONTAL);
+        row.setGravity(Gravity.CENTER_VERTICAL);
+        row.setPadding(0, dp(5), 0, dp(5));
+
+        TextView time = new TextView(this);
+        time.setText(TimeUtil.clockTime(entry.at));
+        time.setTextSize(10);
+        time.setTypeface(Typeface.MONOSPACE);
+        time.setTextColor(ContextCompat.getColor(this, R.color.muted_dim));
+        time.setWidth(dp(62));
+        row.addView(time);
+
+        TextView kind = new TextView(this);
+        kind.setText(kindLabel(entry.kind));
+        kind.setTextSize(9);
+        kind.setLetterSpacing(0.08f);
+        kind.setAllCaps(true);
+        kind.setTextColor(ContextCompat.getColor(this, kindColor(entry.kind)));
+        kind.setWidth(dp(66));
+        row.addView(kind);
+
+        TextView ip = new TextView(this);
+        ip.setText(entry.ip);
+        ip.setTextSize(12);
+        ip.setTypeface(Typeface.MONOSPACE);
+        ip.setSingleLine(true);
+        ip.setEllipsize(TextUtils.TruncateAt.END);
+        ip.setTextColor(ContextCompat.getColor(this, R.color.text));
+        row.addView(ip, new LinearLayout.LayoutParams(
+                0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
+
+        return row;
+    }
+
+    private String kindLabel(String kind) {
+        if (IpHistory.KIND_BEFORE.equals(kind)) {
+            return "Before";
+        }
+        if (IpHistory.KIND_AFTER.equals(kind)) {
+            return "After";
+        }
+        if (IpHistory.KIND_AUTO.equals(kind)) {
+            return "Auto";
+        }
+        return "Manual";
+    }
+
+    private int kindColor(String kind) {
+        if (IpHistory.KIND_AFTER.equals(kind)) {
+            return R.color.lime;
+        }
+        if (IpHistory.KIND_BEFORE.equals(kind)) {
+            return R.color.muted;
+        }
+        return R.color.text;
+    }
+
+    private void refreshIp(boolean silent) {
+        if (Prefs.busy(this)) {
+            if (!silent) {
+                Toast.makeText(this, "Wait for the reset to finish", Toast.LENGTH_SHORT).show();
+            }
             return;
         }
         setPill(tvIpBadge, "CHECKING", 2);
         btnRefreshIp.setEnabled(false);
-        final String previous = Prefs.lastIp(this);
         IpUtil.fetchAsync(ip -> {
-            btnRefreshIp.setEnabled(true);
             if (isFinishing() || isDestroyed()) {
                 return;
             }
+            btnRefreshIp.setEnabled(true);
             if (ip == null) {
                 setPill(tvIpBadge, "OFFLINE", 3);
-                tvIp.setText("—");
                 tvIpPrev.setText("No IP service responded. Check the connection and try again.");
                 return;
             }
-            tvIp.setText(ip);
-            boolean changed = previous != null && !previous.equals(ip);
-            setPill(tvIpBadge, changed ? "CHANGED" : "CURRENT", changed ? 1 : 0);
-            if (previous == null) {
-                tvIpPrev.setText("First check on this install. Stored locally to compare next time.");
-            } else if (changed) {
-                tvIpPrev.setText("Previous " + previous + " • the carrier handed out a new address.");
-                Prefs.setPrevIp(this, previous);
-            } else {
-                tvIpPrev.setText("Unchanged from " + previous
-                        + " • CGNAT can hand back the same address.");
+            IpHistory.add(this, ip, silent ? IpHistory.KIND_AUTO : IpHistory.KIND_MANUAL);
+            renderIpCard();
+            if (!silent) {
+                Toast.makeText(this, "Public IP refreshed", Toast.LENGTH_SHORT).show();
             }
-            Prefs.setLastIp(this, ip);
         });
     }
 

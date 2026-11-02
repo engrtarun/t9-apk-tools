@@ -5,13 +5,14 @@ a Jio hotspot session request a new public IP.
 
 [![Build APK & Deploy Pages](https://github.com/engrtarun/t9-apk-tools/actions/workflows/android.yml/badge.svg)](https://github.com/engrtarun/t9-apk-tools/actions/workflows/android.yml)
 [![GitHub Pages](https://img.shields.io/badge/download-GitHub%20Pages-2ea44f)](https://engrtarun.github.io/t9-apk-tools/)
+[![Release](https://img.shields.io/github/v/release/engrtarun/t9-apk-tools?label=release&color=C8FF2E)](https://github.com/engrtarun/t9-apk-tools/releases/latest)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 - Package: `dev.t9.apktools`
 - Android 8.0+ (minSdk 26), target and compile SDK 34
 - Native Java 17, no root, no Play Store listing
 - Download: [APK](https://engrtarun.github.io/t9-apk-tools/download/t9-apk-tools.apk) and [version.json](https://engrtarun.github.io/t9-apk-tools/download/version.json)
-- Releases: [github.com/engrtarun/t9-apk-tools/releases](https://github.com/engrtarun/t9-apk-tools/releases)
+- Releases: [v1.0.0 APK](https://github.com/engrtarun/t9-apk-tools/releases/download/v1.0.0/t9-apk-tools.apk) · [all releases](https://github.com/engrtarun/t9-apk-tools/releases)
 
 ## What it is
 

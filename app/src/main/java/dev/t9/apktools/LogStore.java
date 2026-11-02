@@ -1,14 +1,23 @@
 package dev.t9.apktools;
 
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.os.Handler;
 import android.os.Looper;
 
 import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.ArrayDeque;
+import java.util.List;
+
+/**
+ * Activity log backed by SQLite.
+ *
+ * <p>The old implementation rewrote a JSON array in SharedPreferences on every
+ * line, which is O(n) disk work per event and grows without bound. This one keeps
+ * a tiny ring buffer in memory for the UI and appends a single row per event.
+ * Loading at start is one {@code LIMIT 120} query; nothing else is ever read.</p>
+ */
 public final class LogStore {
 
     public static final String INFO = "info";
@@ -16,50 +25,79 @@ public final class LogStore {
     public static final String WARN = "warn";
     public static final String ERR = "err";
 
-    private static final String FILE = "t9_log";
-    private static final String KEY = "items";
     private static final int MAX = 120;
     private static final Object LOCK = new Object();
     private static final Handler MAIN = new Handler(Looper.getMainLooper());
+    private static final ArrayDeque<Item> BUFFER = new ArrayDeque<>(MAX);
 
-    private static SharedPreferences sp;
-    private static int version = 0;
+    private static Context appContext;
+    private static int version;
     private static volatile Runnable listener;
 
     private LogStore() {
     }
 
+    public static final class Item {
+        public final long at;
+        public final String level;
+        public final String message;
+
+        public Item(long at, String level, String message) {
+            this.at = at;
+            this.level = level;
+            this.message = message;
+        }
+    }
+
     public static void init(Context context) {
-        sp = context.getApplicationContext().getSharedPreferences(FILE, Context.MODE_PRIVATE);
+        appContext = context.getApplicationContext();
+        App.io().execute(() -> {
+            List<Item> rows = T9Database.get(appContext).recentEvents(MAX);
+            synchronized (LOCK) {
+                BUFFER.clear();
+                for (int i = rows.size() - 1; i >= 0; i--) {
+                    BUFFER.addLast(rows.get(i));
+                }
+                version++;
+            }
+            notifyListener();
+        });
     }
 
     public static void add(String level, String message) {
-        if (sp == null || message == null) {
+        if (appContext == null || message == null) {
             return;
         }
+        final Item item = new Item(System.currentTimeMillis(),
+                level == null ? INFO : level, message);
         synchronized (LOCK) {
-            JSONArray current = read();
-            JSONObject item = new JSONObject();
-            try {
-                item.put("t", System.currentTimeMillis());
-                item.put("l", level == null ? INFO : level);
-                item.put("m", message);
-                current.put(item);
-                while (current.length() > MAX) {
-                    current.remove(0);
-                }
-                sp.edit().putString(KEY, current.toString()).apply();
-                version++;
-            } catch (JSONException ignored) {
+            BUFFER.addLast(item);
+            while (BUFFER.size() > MAX) {
+                BUFFER.removeFirst();
             }
+            version++;
         }
         notifyListener();
+        final Context context = appContext;
+        App.io().execute(() -> T9Database.get(context)
+                .insertEvent(item.at, item.level, item.message));
     }
 
     public static JSONArray items() {
+        JSONArray array = new JSONArray();
         synchronized (LOCK) {
-            return read();
+            for (Item item : BUFFER) {
+                JSONObject object = new JSONObject();
+                try {
+                    object.put("t", item.at);
+                    object.put("l", item.level);
+                    object.put("m", item.message);
+                    array.put(object);
+                } catch (Exception ignored) {
+                }
+            }
         }
+        return array;
     }
 
     public static int version() {
@@ -67,45 +105,30 @@ public final class LogStore {
     }
 
     public static void clear(Context context) {
-        if (sp == null) {
-            sp = context.getApplicationContext().getSharedPreferences(FILE, Context.MODE_PRIVATE);
-        }
         synchronized (LOCK) {
-            sp.edit().putString(KEY, "[]").apply();
+            BUFFER.clear();
             version++;
         }
         notifyListener();
+        final Context app = context.getApplicationContext();
+        App.io().execute(() -> T9Database.get(app).clearEvents());
     }
 
     public static String asText() {
-        JSONArray array = items();
         StringBuilder builder = new StringBuilder();
-        for (int i = 0; i < array.length(); i++) {
-            JSONObject item = array.optJSONObject(i);
-            if (item == null) {
-                continue;
+        synchronized (LOCK) {
+            for (Item item : BUFFER) {
+                builder.append(TimeUtil.logTime(item.at))
+                        .append("  ")
+                        .append(item.message)
+                        .append('\n');
             }
-            builder.append(TimeUtil.logTime(item.optLong("t")))
-                    .append("  ")
-                    .append(item.optString("m"))
-                    .append('\n');
         }
         return builder.toString();
     }
 
     public static void setListener(Runnable runnable) {
         listener = runnable;
-    }
-
-    private static JSONArray read() {
-        if (sp == null) {
-            return new JSONArray();
-        }
-        try {
-            return new JSONArray(sp.getString(KEY, "[]"));
-        } catch (JSONException e) {
-            return new JSONArray();
-        }
     }
 
     private static void notifyListener() {

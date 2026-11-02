@@ -44,6 +44,11 @@
             android:exported="true"
             android:parentActivityName=".MainActivity" />
 
+        <activity
+            android:name=".HistoryActivity"
+            android:exported="false"
+            android:parentActivityName=".MainActivity" />
+
         <service
             android:name=".ResetService"
             android:exported="false"

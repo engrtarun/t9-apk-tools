@@ -272,7 +272,7 @@ Common mistakes and fixes:
   `unauthorized` or `offline`. Unlock the phone and accept the debugging
   prompt.
 - **MIUI/Redmi/POCO:** enable **USB debugging (Security settings)** in
-  Developer options in addition to normal USB debugging. MIUI blocks
+  Developer options in addition to normal USB debugging. MIUI may block
   development permission grants otherwise.
 - **OEM policy:** some managed devices and some manufacturer builds block
   `pm grant` for development permissions. Wireless debugging or a different

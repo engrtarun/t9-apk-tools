@@ -146,6 +146,7 @@ public class ResetService extends Service {
         LogStore.add(LogStore.INFO, manual ? "Manual reset started" : "Timer finished — reset started");
 
         final Context app = getApplicationContext();
+        final long startedAt = System.currentTimeMillis();
         App.io().execute(() -> {
             ResetEngine.Result result;
             try {
@@ -163,11 +164,11 @@ public class ResetService extends Service {
                 result.message = "Unexpected error: " + t.getClass().getSimpleName();
             }
             final ResetEngine.Result finalResult = result;
-            handler.post(() -> finishRun(finalResult, manual));
+            handler.post(() -> finishRun(finalResult, manual, startedAt));
         });
     }
 
-    private void finishRun(ResetEngine.Result result, boolean manual) {
+    private void finishRun(ResetEngine.Result result, boolean manual, long startedAt) {
         running = false;
         Prefs.setBusy(this, false);
         releaseWakeLock();
@@ -175,6 +176,19 @@ public class ResetService extends Service {
                 result.message, result.beforeIp, result.afterIp);
         Notifications.showResult(this, result.success, result.ipChanged,
                 result.beforeIp, result.afterIp, result.message);
+
+        final long finishedAt = System.currentTimeMillis();
+        final long duration = Math.max(0L, finishedAt - startedAt);
+        final boolean success = result.success;
+        final boolean changed = result.ipChanged;
+        final String beforeIp = result.beforeIp;
+        final String afterIp = result.afterIp;
+        final String message = result.message;
+        final String engine = result.strategy;
+        final Context app = getApplicationContext();
+        App.io().execute(() -> T9Database.get(app)
+                .insertRun(finishedAt, success, changed, beforeIp, afterIp,
+                        engine, duration, message));
 
         long now = System.currentTimeMillis();
         long existing = Prefs.targetAt(this);

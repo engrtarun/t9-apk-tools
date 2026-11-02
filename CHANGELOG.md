@@ -3,6 +3,37 @@
 All notable changes to T9 APK Tools are recorded here. The project follows
 [Semantic Versioning](https://semver.org/).
 
+## [1.1.0] - 2026-11-02
+
+History, storage and lock-screen fixes.
+
+### Added
+
+- SQLite storage for IP readings, reset runs and the activity log. One file,
+  indexed reads, automatic pruning, no more rewriting a JSON blob on every log
+  line.
+- **History** screen: every reset with the address before and after, the engine
+  that ran it, how long it took, and a filter for new IP / same IP / failed.
+  Tap a run to see the log lines that belong to it.
+- Aggregate insights from the database: totals, success rate, the best hour
+  window, and a warning when the carrier keeps handing back the same address.
+- Share the history as plain text, and clear it from the same screen.
+- Public IP card now shows a real BEFORE → AFTER block with timestamps and a
+  CHANGED / SAME verdict, plus an expandable list of the last eight checks.
+- IPv4 readings are stored with the moment they were taken, so the comparison
+  is honest rather than inferred.
+
+### Fixed
+
+- Arming a timer with no engine enabled now explains the problem and opens
+  Setup instead of silently failing when the alarm fires.
+- A secure lock screen (PIN, pattern, password) is detected before automation
+  runs. The accessibility engine fails in seconds with an actionable message
+  instead of waiting 90 seconds and giving up.
+- The wake lock is only taken when the chosen engine actually needs the screen,
+  so the ADB engine can run with the phone locked.
+- Reset runs are recorded even when the network did not come back.
+
 ## [1.0.0] - 2026-11-02
 
 Initial release.
