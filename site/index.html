@@ -112,6 +112,7 @@
         <ul>
           <li><a href="#how-it-works">How it works</a></li>
           <li><a href="#setup">Setup</a></li>
+          <li><a href="#history">History</a></li>
           <li><a href="#limits">Limits</a></li>
           <li><a href="#faq">FAQ</a></li>
           <li><a class="nav-github" href="https://github.com/engrtarun/t9-apk-tools" target="_blank" rel="noopener noreferrer"><svg class="icon icon--github" aria-hidden="true" focusable="false"><use href="#i-github"/></svg><span>GitHub</span><span class="sr-only"> (opens in a new tab)</span></a></li>
@@ -337,10 +338,41 @@
       </div>
     </section>
 
+    <section class="section" id="history" aria-labelledby="history-title">
+      <div class="shell">
+        <div class="section-head">
+          <p class="kicker"><span>05</span> THE MEMORY</p>
+          <h2 id="history-title">Every run leaves a record you can actually read.</h2>
+          <p class="section-intro">Resets, IP readings, and the activity stream land in an on-device SQLite database. One small file, indexed reads, automatic pruning — not a JSON blob rewritten on every line.</p>
+        </div>
+        <div class="problem-grid">
+          <div class="prose">
+            <p class="lede">A toggle without evidence is just a toggle. The point of this tool is the honest before → after: what the carrier handed out, when, and whether anything actually moved.</p>
+            <p>Every reset writes the engine it used, how long it took, and the outcome. Every IP reading keeps the moment it was taken, so comparisons are never guessed from stale values. The History screen lists every run with a NEW IP / SAME / FAILED filter, and tapping a run opens the exact log lines that belong to it.</p>
+            <p>Insights are computed from the same rows: totals, success rate, the calmest three-hour window for your phone, and a warning when the carrier keeps handing back the same address. Share it all as text, or clear it.</p>
+            <p class="callout"><strong>All of it stays on the phone.</strong> Share exports plain text. There is no account, no sync, no upload.</p>
+          </div>
+          <aside class="manual-panel" data-reveal aria-label="What the database stores">
+            <div class="panel-label"><span>STORAGE LEDGER</span><span>ONE FILE</span></div>
+            <dl class="spec" data-motion-stagger>
+              <div class="spec-row"><dt>Log events</dt><dd>newest <code>300</code></dd></div>
+              <div class="spec-row"><dt>Reset runs</dt><dd>newest <code>150</code></dd></div>
+              <div class="spec-row"><dt>IP readings</dt><dd>newest <code>80</code></dd></div>
+              <div class="spec-row"><dt>Pruning</dt><dd>automatic, indexed</dd></div>
+              <div class="spec-row"><dt>Maintenance</dt><dd>batched, every <code>32</code> / <code>128</code> writes</dd></div>
+              <div class="spec-row"><dt>Footprint</dt><dd><span class="meter" aria-hidden="true"><i class="is-on"></i></span>light on RAM + flash</dd></div>
+              <div class="spec-row"><dt>Leaves the phone</dt><dd>never</dd></div>
+            </dl>
+            <p class="panel-foot">Clear it from the History screen any time. Uninstalling removes the file too.</p>
+          </aside>
+        </div>
+      </div>
+    </section>
+
     <section class="section" id="limits" aria-labelledby="limits-title">
       <div class="shell">
         <div class="section-head">
-          <p class="kicker"><span>05</span> LIMITS</p>
+          <p class="kicker"><span>06</span> LIMITS</p>
           <h2 id="limits-title">What it cannot do.</h2>
           <p class="section-intro">The app is explicit about the parts it does not control. Read these before relying on it for anything important.</p>
         </div>
@@ -359,7 +391,7 @@
     <section class="section" id="faq" aria-labelledby="faq-title">
       <div class="shell faq-layout">
         <div class="faq-intro">
-          <p class="kicker"><span>06</span> FAQ</p>
+          <p class="kicker"><span>07</span> FAQ</p>
           <h2 id="faq-title">Before you sideload.</h2>
           <p>Short answers. The README and source cover the deeper details, including failure handling and device-specific notes.</p>
           <a class="text-link" href="https://github.com/engrtarun/t9-apk-tools#readme" target="_blank" rel="noopener noreferrer">Read the README<svg class="icon" aria-hidden="true" focusable="false"><use href="#i-external"/></svg><span class="sr-only"> (opens in a new tab)</span></a>
@@ -372,6 +404,7 @@
           <details class="faq-item"><summary><span class="faq-question">How does it affect battery life?</span><span class="faq-icon" aria-hidden="true"></span></summary><div class="faq-answer"><p>It is not an always-on VPN or a persistent scanner. The app schedules an exact alarm and runs a short foreground service when the reset starts. Set battery usage to Unrestricted; aggressive OEM managers can still kill background work.</p></div></details>
           <details class="faq-item"><summary><span class="faq-question">Is the accessibility service safe?</span><span class="faq-icon" aria-hidden="true"></span></summary><div class="faq-answer"><p>It is powerful by design: Android grants broad window access while the service is enabled. The app limits inspection and clicks to the Airplane mode flow, keeps data on-device, and stores nothing remotely. Disable the service when you are not using it.</p></div></details>
           <details class="faq-item"><summary><span class="faq-question">Can I uninstall it cleanly?</span><span class="faq-icon" aria-hidden="true"></span></summary><div class="faq-answer"><p>Yes. Uninstalling removes the app, its local logs and settings, and the ADB grant. Nothing is stored on a server.</p></div></details>
+          <details class="faq-item"><summary><span class="faq-question">Where does the history go?</span><span class="faq-icon" aria-hidden="true"></span></summary><div class="faq-answer"><p>Into a small SQLite database on the same phone: the newest 300 log events, 150 reset runs, and 80 IP readings. It prunes itself automatically, you can share it as plain text or clear it from the History screen, and nothing leaves the device.</p></div></details>
           <details class="faq-item"><summary><span class="faq-question">Why is it not on the Play Store?</span><span class="faq-icon" aria-hidden="true"></span></summary><div class="faq-answer"><p>It is a niche sideload utility that relies on an optional ADB grant and an accessibility service. Publishing a signed APK through GitHub Pages and Releases keeps distribution simple and auditable.</p></div></details>
         </div>
       </div>
@@ -380,7 +413,7 @@
     <section class="section section--download" id="download" aria-labelledby="download-title">
       <div class="shell">
         <div class="section-head">
-          <p class="kicker"><span>07</span> DOWNLOAD</p>
+          <p class="kicker"><span>08</span> DOWNLOAD</p>
           <h2 id="download-title">Install the current build.</h2>
           <p class="section-intro">Signed by GitHub Actions, published from this page. One APK, one manifest, no store account.</p>
         </div>
@@ -449,6 +482,7 @@
           <ul>
             <li><a href="#how-it-works">How it works</a></li>
             <li><a href="#setup">Setup</a></li>
+            <li><a href="#history">History</a></li>
             <li><a href="#limits">Limits</a></li>
             <li><a href="#faq">FAQ</a></li>
             <li><a href="#download">Download</a></li>
