@@ -127,10 +127,22 @@ public final class IpHistory {
                             T9Database.get(appContext).recentIpChecks(DB_LIMIT);
                     synchronized (LOCK) {
                         if (!CACHE.isEmpty()) {
-                            return;
-                        }
-                        for (T9Database.IpRow row : rows) {
-                            CACHE.add(new Entry(row.at, row.ip, row.kind));
+                            /* A reading landed while the query was running. Keep
+                               the live entries and append only older rows. */
+                            long oldest = CACHE.get(CACHE.size() - 1).at;
+                            for (int i = rows.size() - 1; i >= 0; i--) {
+                                T9Database.IpRow row = rows.get(i);
+                                if (row.at < oldest) {
+                                    CACHE.add(new Entry(row.at, row.ip, row.kind));
+                                }
+                            }
+                            while (CACHE.size() > CACHE_SIZE) {
+                                CACHE.remove(CACHE.size() - 1);
+                            }
+                        } else {
+                            for (T9Database.IpRow row : rows) {
+                                CACHE.add(new Entry(row.at, row.ip, row.kind));
+                            }
                         }
                     }
                     notifyListener();
@@ -152,6 +164,8 @@ public final class IpHistory {
             appContext = context.getApplicationContext();
         }
         final Context app = appContext;
+        boolean dedup = false;
+        long dedupOldAt = 0L;
         synchronized (LOCK) {
             if (!CACHE.isEmpty()) {
                 Entry head = CACHE.get(0);
@@ -159,23 +173,34 @@ public final class IpHistory {
                 boolean sameKind = head.kind.equals(kind);
                 boolean quickRepeat = Math.abs(at - head.at) < SAME_KIND_WINDOW_MS;
                 if (sameAddress && sameKind && quickRepeat) {
+                    /* Same reading repeated: move the timestamp instead of
+                       stacking a row. Remember the old one so the ledger row can
+                       be moved too — otherwise a restart rolls the card time
+                       back to the previous reading. */
+                    dedup = true;
+                    dedupOldAt = head.at;
                     CACHE.set(0, new Entry(at, ip, kind));
-                    // Same reading repeated: move the timestamp, no new row.
-                    return;
                 }
             }
-            CACHE.add(0, new Entry(at, ip, kind));
-            while (CACHE.size() > CACHE_SIZE) {
-                CACHE.remove(CACHE.size() - 1);
+            if (!dedup) {
+                CACHE.add(0, new Entry(at, ip, kind));
+                while (CACHE.size() > CACHE_SIZE) {
+                    CACHE.remove(CACHE.size() - 1);
+                }
             }
         }
-        final String finalKind = kind;
-        final long finalAt = at;
+        notifyListener();
+        final boolean dedupFinal = dedup;
+        final long oldAt = dedupOldAt;
         App.runIo(() -> {
-            if (finalAt < clearCutoff) {
+            if (at < clearCutoff) {
                 return;
             }
-            T9Database.get(app).insertIpCheck(finalAt, ip, finalKind);
+            if (dedupFinal) {
+                T9Database.get(app).touchIpCheck(oldAt, ip, kind, at);
+            } else {
+                T9Database.get(app).insertIpCheck(at, ip, kind);
+            }
         });
     }
 
@@ -225,6 +250,7 @@ public final class IpHistory {
         synchronized (LOCK) {
             CACHE.clear();
         }
+        notifyListener();
         final Context app = context.getApplicationContext();
         App.runIo(() -> T9Database.get(app).clearIpChecks());
     }

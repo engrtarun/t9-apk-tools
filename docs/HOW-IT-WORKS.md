@@ -1,10 +1,11 @@
 # How T9 APK Tools works
 
 T9 APK Tools (`dev.t9.apktools`) is a sideloaded, no-root Android app that
-automates the airplane-mode toggle people use to make a mobile session request
-a new public IP. It runs a countdown, briefly switches Airplane mode, restores
-the previous state, and then asks a public-IP service what address the network
-has now.
+automates the network toggle people use to make a mobile session request a new
+public IP. It runs a countdown, briefly switches Airplane mode — or cycles
+mobile data through Shizuku without touching Airplane mode — restores the
+previous state, and then asks a public-IP service what address the network has
+now.
 
 It is not a VPN, a proxy, or an IP pool. It only automates a toggle a user could
 perform by hand, and it reports what happened. **A new public IP is never
@@ -12,7 +13,8 @@ guaranteed.** The carrier decides whether a reconnect gets a different address.
 
 - Android 8.0+ (minSdk 26), target and compile SDK 34
 - Native Java 17, no root, no Play Store listing
-- Direct, Accessibility, and Quick Settings engines
+- Data (Shizuku, no Airplane mode), Direct, Accessibility, and Quick Settings
+  engines
 - Foreground service, exact alarm, boot receiver
 - Local SQLite history: newest 300 log events, 150 runs, 80 IP readings
 
@@ -28,12 +30,17 @@ runtime permission dialog. The hidden/system API
 apps. The public `Settings.ACTION_AIRPLANE_MODE_SETTINGS` intent only opens the
 Settings screen; it does not change the state.
 
-That leaves two practical, non-root paths, and the app implements both:
+That leaves three practical, non-root paths, and the app implements all three:
 
-1. **Direct:** a one-time ADB grant of `WRITE_SECURE_SETTINGS`. This is a
+1. **Data:** run `/system/bin/cmd phone data disable|enable` (or `svc data` as a
+   fallback) with the ADB shell identity. The shim belongs to the shell UID,
+   which holds `MODIFY_PHONE_STATE`; a normal app cannot call it. The app binds a
+   tiny Shizuku user service for exactly these two commands. Airplane mode is
+   never touched.
+2. **Direct:** a one-time ADB grant of `WRITE_SECURE_SETTINGS`. This is a
    development permission, not root. It is granted per Android user, survives
    reboots and app updates, and is removed when the app is uninstalled.
-2. **Accessibility:** a user-enabled `AccessibilityService` opens the Settings
+3. **Accessibility:** a user-enabled `AccessibilityService` opens the Settings
    page or Quick Settings shade and clicks the Airplane control.
 
 ```bash
@@ -75,21 +82,28 @@ fires; the alarm is the wake-up mechanism.
    `SCREEN_BRIGHT_WAKE_LOCK | ACQUIRE_CAUSES_WAKEUP` for up to 4 minutes. It
    then checks `KeyguardManager.isKeyguardLocked()`. If the keyguard is locked,
    it posts a high-importance unlock notification and waits up to 90 seconds.
-   Direct skips both steps and runs screen-off or locked, OEM permitting.
+   Data and Direct skip both steps and run screen-off or locked, OEM
+   permitting.
 7. **Before IP.** If "Verify public IP" is enabled, `IpUtil.fetch()` tries
    `https://api.ipify.org`, then `https://icanhazip.com`, then
    `https://ifconfig.me/ip`. Each request has a 5-second connect timeout and a
    5-second read timeout. The first valid answer is stored as the before
    address.
-8. **Toggle.** The selected engine switches Airplane mode to the opposite of
-   the state it found, waits `offDelaySec` (2–12 seconds, default 3), then
-   restores the original state. Normally that is off → on → off. If Airplane
-   mode was already on when the run started, it is on → off → on.
-9. **Safety check.** Every engine reports success or failure. `ResetEngine`
-   reads `Settings.Global.AIRPLANE_MODE_ON` after the engine returns. If the
-   state is not the original state, it runs the restore path again.
+8. **Toggle.** The Airplane engines switch Airplane mode to the opposite of the
+   state they found, wait `offDelaySec` (2–12 seconds, default 3), then restore
+   the original state. Normally that is off → on → off. If Airplane mode was
+   already on when the run started, it is on → off → on. The Data engine instead
+   switches mobile data off, holds for `max(4, offDelaySec)` seconds, and
+   switches it back on.
+9. **Safety check.** Every engine reports success or failure. For the Airplane
+   engines, `ResetEngine` reads `Settings.Global.AIRPLANE_MODE_ON` after the
+   engine returns. If the state is not the original state, it runs the restore
+   path again. The Data engine skips this read: the run never writes the
+   Airplane setting.
 10. **Connectivity.** `IpUtil.waitForInternet()` waits up to 60 seconds for an
-    active network with `NET_CAPABILITY_INTERNET` and Airplane mode off.
+    active network with `NET_CAPABILITY_INTERNET` and Airplane mode off. A data
+    run uses `IpUtil.waitForOnline()`, which drops the Airplane requirement
+    because that engine never changes it.
 11. **After IP.** If verification is enabled, `IpUtil.fetch()` is attempted up
     to 4 times, 2 seconds apart. The result is compared as a string with the
     before address.
@@ -168,10 +182,62 @@ The UI names differ slightly from the internal strategy values:
 
 | UI option | Internal value | Mechanism | Screen requirement |
 | --- | --- | --- | --- |
-| Auto (recommended) | `auto` | Direct if granted; otherwise Quick Settings, then Settings UI | Depends on the chosen path |
+| Auto (recommended) | `auto` | Data if Shizuku is connected and granted; otherwise Direct, then Quick Settings, then Settings UI | Depends on the chosen path |
+| Data — Shizuku, no Airplane mode | `data` | Binds a Shizuku user service and runs `cmd phone data disable` then `enable`, with `svc data` as a fallback | No UI automation; screen-off and locked are supported |
 | Direct — ADB grant, instant | `direct` | Writes `Settings.Global.AIRPLANE_MODE_ON` | No UI automation; screen-off and locked are supported (OEM permitting). A secure lock fails UI automation in seconds. |
 | Accessibility — Settings UI | `settings` | Opens the Airplane mode Settings page and clicks the switch | Unlocked, screen on |
 | Quick Settings tile | `qs` | Opens the Quick Settings shade and clicks the tile, then taps calibrated coordinates if needed | Unlocked, screen on |
+
+### Data engine
+
+Requires Shizuku installed, running, and this app granted. The check is
+`ShellEngine.available()`: `Sui.isSui()` or `Shizuku.pingBinder()`, plus
+`Shizuku.checkSelfPermission()`.
+
+`ShellEngine.dataReset()`:
+
+- binds a Shizuku user service (`ShellUserService`) that runs with the ADB shell
+  identity;
+- asks it to switch mobile data off, and arms a watchdog in that process;
+- sleeps `max(4, offDelaySec)` seconds;
+- asks it to switch mobile data back on, which cancels the watchdog;
+- unbinds the service and stops its process.
+
+If the app process is killed during the hold, the watchdog switches data back on
+after the hold plus 30 seconds. It stays in the shell process, so it does not
+depend on the app UI. Enabling data that is already enabled is a no-op, so a
+late watchdog cannot fight the normal path.
+
+Inside the service, `setMobileData()` runs:
+
+```text
+/system/bin/cmd phone data disable
+/system/bin/cmd phone data enable
+```
+
+If that exits non-zero, it tries `/system/bin/svc data disable|enable`. The
+return value says which path worked (`ok:cmd-phone-disable` or
+`ok:svc-disable`), and the app puts it in the log.
+
+Failure modes:
+
+- **Shizuku not running.** `NOT CONNECTED` in Setup; Auto skips Data; an
+  explicit Data run logs `Shizuku is not connected or not granted. Connect it in Setup.`
+- **Grant missing.** The binder is alive but `checkSelfPermission` is not
+  granted; same message.
+- **Neither command exists.** `cmd phone` was added in Android 11; `svc data` is
+  broken on several Android 11–13 stock builds and works again on some Android
+  14 builds. The log shows both exit codes, e.g. `fail:cmd=1,svc=1`.
+- **The service does not start.** The bind has a 15-second timeout; the log says
+  `Shizuku did not start the shell service.`
+- **Mobile data does not come back.** The run fails with
+  `Mobile data did not come back (…)`. Turn mobile data on manually.
+- **Airplane mode was on before the run.** The cycle cannot help; the
+  connectivity wait still fails or the IP does not change. Turn Airplane mode
+  off first.
+
+Shizuku is stopped by a reboot on a non-rooted phone. Sui or root keeps it
+available across boots.
 
 ### Direct engine
 
@@ -275,11 +341,12 @@ Failure modes:
 
 `Auto` is evaluated when the reset runs, not when the timer is armed:
 
-1. If `WRITE_SECURE_SETTINGS` is granted, use Direct.
-2. Else if the accessibility service is enabled, try Quick Settings.
-3. If Quick Settings returns false, try the Settings UI.
-4. If neither Direct nor Accessibility is available, fail with
-   `No engine enabled. Turn on Accessibility in Setup, or grant ADB access.`
+1. If Shizuku is connected and granted, use Data.
+2. Else if `WRITE_SECURE_SETTINGS` is granted, use Direct.
+3. Else if the accessibility service is enabled, try Quick Settings.
+4. If Quick Settings returns false, try the Settings UI.
+5. If no engine is available, fail with
+   `No engine enabled. Grant ADB access, connect Shizuku, or turn on Accessibility in Setup.`
 
 Auto does not silently skip a granted-but-broken Direct write. If the Direct
 path runs and fails, the run fails; it does not automatically fall through to
@@ -354,7 +421,7 @@ attempts: check state, wait 2 seconds, tap, then reopen Quick Settings, wait
 The Setup screen exposes X and Y as sliders. This build does not capture a tap
 to calibrate automatically; you position the tile and set the percentages
 manually. See
-[SETUP.md](SETUP.md#8-tune-timing-ip-checks-and-quick-settings).
+[SETUP.md](SETUP.md#9-tune-timing-ip-checks-and-quick-settings).
 
 ## Safety restore
 
@@ -378,7 +445,9 @@ There are real limits:
 - If the process is force-stopped, killed by an OEM battery manager, or the
   device reboots in the middle of a run, the in-process restore cannot execute.
   Airplane mode may stay on. The app does not register a persistent
-  "restore on boot" job for that case.
+  "restore on boot" job for that case. For the Data engine, the shell watchdog
+  re-enables mobile data after the hold plus 30 seconds, but only while the
+  Shizuku service process itself is still alive.
 - A `finally` block releases the screen wake lock and cancels the unlock
   notification, but it cannot undo a radio state that the OS refuses to change.
 - The 10-minute partial wake lock is not a guarantee that the process survives.
@@ -450,7 +519,8 @@ A reset is short but not free:
 
 - the screen can be woken for up to 4 minutes when "Wake screen" is on;
 - a partial wake lock is held for up to 10 minutes;
-- the modem detaches and reattaches, which is the largest radio cost;
+- the modem detaches and reattaches, which is the largest radio cost. The Data
+  engine does the same for the mobile-data context and leaves Wi-Fi alone;
 - a hotspot, if present, drops and its clients reconnect;
 - IP verification makes up to two fetches per run, each trying up to three
   HTTPS endpoints with 5-second timeouts;
@@ -465,6 +535,9 @@ address assignment.
 ## Limits
 
 - A new public IP is not guaranteed.
+- The Data engine needs a running Shizuku and a build where `cmd phone data` or
+  `svc data` works. Shizuku must be restarted after a reboot on a non-rooted
+  phone.
 - UI automation requires an unlocked screen and an English `airplane` or
   `flight mode` label, or a calibrated Quick Settings position.
 - OEM Settings pages, tile layouts, and background policies vary.

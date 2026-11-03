@@ -40,8 +40,14 @@ public final class ResetEngine {
                 listener.log(LogStore.ERR, result.message);
                 return result;
             }
-            if (!direct && !accessibility) {
-                result.message = "No engine enabled. Turn on Accessibility in Setup, or grant ADB access.";
+            /* Fail before the IP fetch when the chosen engine cannot run at all. */
+            if (Prefs.STRATEGY_DATA.equals(strategy) && !ShellEngine.available()) {
+                result.message = "Shizuku is not connected or not granted. Connect it in Setup.";
+                listener.log(LogStore.ERR, result.message);
+                return result;
+            }
+            if (!direct && !accessibility && !ShellEngine.available()) {
+                result.message = "No engine enabled. Grant ADB access, connect Shizuku, or turn on Accessibility in Setup.";
                 listener.log(LogStore.ERR, result.message);
                 return result;
             }
@@ -49,9 +55,13 @@ public final class ResetEngine {
             /* The ADB engine writes the setting directly, so it works on a locked
                phone. Accessibility has to drive the visible Settings UI, which a
                secure keyguard will always block. Decide that before wasting time. */
-            boolean needsUnlockedScreen = !direct
-                    || Prefs.STRATEGY_SETTINGS.equals(strategy)
-                    || Prefs.STRATEGY_QS.equals(strategy);
+            boolean dataEngine = Prefs.STRATEGY_DATA.equals(strategy)
+                    || (Prefs.STRATEGY_AUTO.equals(strategy) && !direct
+                        && ShellEngine.available());
+            boolean needsUnlockedScreen = !dataEngine
+                    && (!direct
+                        || Prefs.STRATEGY_SETTINGS.equals(strategy)
+                        || Prefs.STRATEGY_QS.equals(strategy));
 
             if (needsUnlockedScreen && Prefs.wakeScreen(context)) {
                 PowerManager power = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
@@ -119,7 +129,41 @@ public final class ResetEngine {
                     listener.log(LogStore.INFO, "Accessibility engine: Quick Settings");
                     toggled = viaQuickSettings(context, listener);
                     break;
+                case Prefs.STRATEGY_DATA:
+                    result.strategy = "data";
+                    if (!ShellEngine.available()) {
+                        result.message = "Shizuku is not connected or not granted. Connect it in Setup.";
+                        listener.log(LogStore.ERR, result.message);
+                        return result;
+                    }
+                    listener.log(LogStore.INFO, "Data engine: Shizuku shell, Airplane mode untouched");
+                    /* A data context needs a moment longer than an airplane hold
+                       to release, so the saved hold time has a floor of 4 s. */
+                    toggled = ShellEngine.dataReset(context, listener,
+                            Math.max(4, Prefs.offDelaySec(context)));
+                    if (!toggled) {
+                        result.message = "Mobile data would not reset over Shizuku. "
+                                + "Pick the Direct engine in Setup for the Airplane toggle.";
+                        listener.log(LogStore.ERR, result.message);
+                        return result;
+                    }
+                    break;
                 default:
+                    /* Auto favours the engine that never touches Airplane mode,
+                       then the direct write, then accessibility. */
+                    if (!direct && ShellEngine.available()) {
+                        result.strategy = "data";
+                        listener.log(LogStore.INFO, "Auto: no-Airplane data engine (Shizuku)");
+                        toggled = ShellEngine.dataReset(context, listener,
+                                Math.max(4, Prefs.offDelaySec(context)));
+                        if (!toggled) {
+                            result.message = "Mobile data would not reset over Shizuku. "
+                                    + "Pick the Direct engine in Setup for the Airplane toggle.";
+                            listener.log(LogStore.ERR, result.message);
+                            return result;
+                        }
+                        break;
+                    }
                     if (canWriteDirect(context)) {
                         result.strategy = "direct";
                         listener.log(LogStore.INFO, "Auto: direct ADB engine");
@@ -134,7 +178,7 @@ public final class ResetEngine {
                             toggled = viaSettings(context, listener);
                         }
                     } else {
-                        result.message = "No engine enabled. Turn on Accessibility in Setup, or grant ADB access.";
+                        result.message = "No engine enabled. Grant ADB access, connect Shizuku, or turn on Accessibility in Setup.";
                         listener.log(LogStore.ERR, result.message);
                         return result;
                     }
@@ -151,17 +195,23 @@ public final class ResetEngine {
                 return result;
             }
 
-            if (isAirplaneOn(context) != initial) {
+            if (result.strategy.equals("data")) {
+                listener.log(LogStore.OK, "Mobile data cycled without touching Airplane mode");
+            } else if (isAirplaneOn(context) != initial) {
                 listener.log(LogStore.WARN, "Airplane mode is still on — restoring");
                 if (!restoreAirplane(context, initial, listener)) {
                     result.message = "Airplane mode is still ON. Turn it off manually.";
                     listener.log(LogStore.ERR, result.message);
                     return result;
                 }
+                listener.log(LogStore.OK, "Airplane mode switched and restored");
+            } else {
+                listener.log(LogStore.OK, "Airplane mode switched and restored");
             }
-            listener.log(LogStore.OK, "Airplane mode switched and restored");
 
-            boolean online = IpUtil.waitForInternet(context, 60_000L);
+            boolean online = result.strategy.equals("data")
+                    ? IpUtil.waitForOnline(context, 60_000L)
+                    : IpUtil.waitForInternet(context, 60_000L);
             if (!online) {
                 result.message = "Network did not come back in 60 s. Check mobile data.";
                 listener.log(LogStore.WARN, result.message);

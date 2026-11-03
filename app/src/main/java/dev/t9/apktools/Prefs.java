@@ -11,6 +11,7 @@ public final class Prefs {
     public static final String STRATEGY_DIRECT = "direct";
     public static final String STRATEGY_SETTINGS = "settings";
     public static final String STRATEGY_QS = "qs";
+    public static final String STRATEGY_DATA = "data";
 
     private Prefs() {
     }
@@ -63,7 +64,8 @@ public final class Prefs {
     public static String strategy(Context context) {
         String value = sp(context).getString("strategy", STRATEGY_AUTO);
         if (STRATEGY_DIRECT.equals(value) || STRATEGY_SETTINGS.equals(value)
-                || STRATEGY_QS.equals(value) || STRATEGY_AUTO.equals(value)) {
+                || STRATEGY_QS.equals(value) || STRATEGY_DATA.equals(value)
+                || STRATEGY_AUTO.equals(value)) {
             return value;
         }
         return STRATEGY_AUTO;

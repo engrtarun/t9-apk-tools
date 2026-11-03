@@ -96,7 +96,10 @@ public class ResetService extends Service {
 
         long target = Prefs.targetAt(this);
         if (target <= 0L) {
-            stopSelf();
+            /* A startForegroundService call promised a foreground state, and a
+               missing promotion is a crash on newer Androids. Promote, then go. */
+            startForegroundCompat(Notifications.running(this, "Idle"));
+            stopTimer();
             return START_NOT_STICKY;
         }
         if (running) {
@@ -149,6 +152,7 @@ public class ResetService extends Service {
         PowerManager power = (PowerManager) getSystemService(Context.POWER_SERVICE);
         if (power != null) {
             wakeLock = power.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "T9:reset");
+            wakeLock.setReferenceCounted(false);
             wakeLock.acquire(10 * 60 * 1000L);
         }
         LogStore.add(LogStore.INFO, manual ? "Manual reset started" : "Timer finished — reset started");
@@ -164,6 +168,9 @@ public class ResetService extends Service {
                         if (running) {
                             startForegroundCompat(Notifications.running(
                                     ResetService.this, message));
+                            /* Slow phases (unlock wait, a slow carrier) can
+                               outlive the first timeout; keep the CPU held. */
+                            renewWakeLock();
                         }
                     });
                 });
@@ -266,13 +273,26 @@ public class ResetService extends Service {
         wakeLock = null;
     }
 
+    /** Re-arms the (non-refcounted) wake lock so long runs stay held. */
+    private void renewWakeLock() {
+        PowerManager.WakeLock lock = wakeLock;
+        if (lock == null) {
+            return;
+        }
+        if (lock.isHeld()) {
+            lock.release();
+        }
+        lock.acquire(10 * 60 * 1000L);
+    }
+
     @Override
     public void onDestroy() {
         handler.removeCallbacks(tick);
-        if (!running) {
-            releaseWakeLock();
-            Prefs.setBusy(this, false);
-        }
+        /* Whether the system tears the service down mid-run or after it, never
+           leave the timer wedged as "busy" when this process stops existing. */
+        running = false;
+        releaseWakeLock();
+        Prefs.setBusy(this, false);
         if (Prefs.targetAt(this) > System.currentTimeMillis()) {
             ResetScheduler.schedule(this, Prefs.targetAt(this));
         }

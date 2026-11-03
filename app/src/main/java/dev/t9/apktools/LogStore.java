@@ -92,6 +92,11 @@ public final class LogStore {
         }
         final Item item = new Item(System.currentTimeMillis(),
                 level == null ? INFO : level, message);
+        if (item.at < clearCutoff) {
+            /* The log was cleared while this line was in flight. Drop it from
+               the ring buffer too, so memory and the database stay identical. */
+            return;
+        }
         synchronized (LOCK) {
             BUFFER.addLast(item);
             while (BUFFER.size() > MAX) {

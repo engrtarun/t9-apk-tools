@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>T9 APK Tools — Scheduled Airplane mode for a new public IP</title>
-  <meta name="description" content="A no-root Android utility that arms a 15-minute timer, cycles Airplane mode, and reports whether your Jio hotspot session received a new public IP. Native Java, open source.">
+  <title>T9 APK Tools — Scheduled network reset for a new public IP</title>
+  <meta name="description" content="A no-root Android utility that arms a 15-minute timer, cycles Airplane mode or mobile data, and reports whether your Jio hotspot session received a new public IP. Native Java, open source.">
   <meta name="theme-color" content="#0A0D09">
   <meta name="color-scheme" content="dark">
   <meta name="robots" content="index,follow">
@@ -16,12 +16,12 @@
   <script src="app.js" defer></script>
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="T9 APK Tools">
-  <meta property="og:title" content="T9 APK Tools — Change your public IP without touching Airplane mode">
-  <meta property="og:description" content="A 15-minute countdown, one Airplane mode cycle, an honest before-and-after IP check. No root, no VPN, no account.">
+  <meta property="og:title" content="T9 APK Tools — Cycle Airplane mode or mobile data on a timer">
+  <meta property="og:description" content="A 15-minute countdown, one network cycle (Airplane mode or mobile data through Shizuku), an honest before-and-after IP check. No root, no VPN, no account.">
   <meta property="og:url" content="https://engrtarun.github.io/t9-apk-tools/">
   <meta name="twitter:card" content="summary">
-  <meta name="twitter:title" content="T9 APK Tools — Change your public IP without touching Airplane mode">
-  <meta name="twitter:description" content="A no-root Android timer for the Jio hotspot Airplane mode routine. Native Java, open source, built by GitHub Actions.">
+  <meta name="twitter:title" content="T9 APK Tools — Cycle Airplane mode or mobile data on a timer">
+  <meta name="twitter:description" content="A no-root Android timer for the Jio hotspot network routine. Native Java, open source, built by GitHub Actions.">
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
@@ -29,7 +29,7 @@
     "name": "T9 APK Tools",
     "applicationCategory": "UtilitiesApplication",
     "operatingSystem": "Android 8.0+",
-    "description": "A no-root Android utility that cycles Airplane mode on a timer and reports whether the public IP changed.",
+    "description": "A no-root Android utility that cycles Airplane mode or mobile data on a timer and reports whether the public IP changed.",
     "url": "https://engrtarun.github.io/t9-apk-tools/",
     "downloadUrl": "https://engrtarun.github.io/t9-apk-tools/download/t9-apk-tools.apk",
     "codeRepository": "https://github.com/engrtarun/t9-apk-tools",
@@ -86,6 +86,7 @@
       <symbol id="i-clock" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></g></symbol>
       <symbol id="i-shield" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 19 6v5.5c0 4.4-2.9 7.8-7 9.5-4.1-1.7-7-5.1-7-9.5V6l7-3Z"/><path d="m9 12 2 2 4-4"/></g></symbol>
       <symbol id="i-wifi" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5a15 15 0 0 1 18 0"/><path d="M6.5 12.5a10 10 0 0 1 11 0"/><path d="M10 16.5a5 5 0 0 1 4 0"/><circle cx="12" cy="20" r=".8" fill="currentColor" stroke="none"/></g></symbol>
+      <symbol id="i-signal" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M5 20v-4"/><path d="M10 20v-8"/><path d="M15 20V9"/><path d="M20 20V5"/></g></symbol>
       <symbol id="i-lock" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></g></symbol>
       <symbol id="i-alert" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 2.5 20h19L12 3Z"/><path d="M12 9v5"/><path d="M12 17.5h.01"/></g></symbol>
       <symbol id="i-x" viewBox="0 0 24 24"><path fill="currentColor" d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231 5.451-6.231Zm-1.161 17.52h1.833L7.084 4.126H5.117l11.966 15.644Z"/></symbol>
@@ -127,7 +128,7 @@
         <div class="hero-copy">
           <p class="eyebrow"><span class="eyebrow-dot" aria-hidden="true"></span>NO ROOT • ACCESSIBILITY AUTOMATION</p>
           <h1 id="hero-title">Change your public IP without touching <span class="hl">Airplane mode.</span></h1>
-          <p class="hero-sub">T9 APK Tools arms a 15-minute countdown, toggles Airplane mode at the end, and checks the public address before and after. Built for Jio hotspot sessions that need a fresh carrier mapping — not a VPN, not root.</p>
+          <p class="hero-sub">T9 APK Tools arms a 15-minute countdown, cycles Airplane mode or mobile data at the end, and checks the public address before and after. Built for Jio hotspot sessions that need a fresh carrier mapping — not a VPN, not root.</p>
           <div class="hero-actions">
             <a class="btn btn--lime btn--lg" href="download/t9-apk-tools.apk" download data-apk-link><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-download"/></svg><span>Download APK</span></a>
             <a class="btn btn--ghost btn--lg" href="#how-it-works"><span>See how it works</span><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-arrow-right"/></svg></a>
@@ -220,13 +221,24 @@
     <section class="section" id="how-it-works" aria-labelledby="engines-title">
       <div class="shell">
         <div class="section-head">
-          <p class="kicker"><span>02</span> THREE ENGINES</p>
-          <h2 id="engines-title">One switch, three ways to reach it.</h2>
-          <p class="section-intro">Every engine ends with the same result: Airplane mode on for about three seconds, then off. Auto mode picks the most reliable option available.</p>
+          <p class="kicker"><span>02</span> FOUR ENGINES</p>
+          <h2 id="engines-title">One reset, four ways to run it.</h2>
+          <p class="section-intro">Three engines cycle Airplane mode; the fourth cycles mobile data instead, so Wi-Fi and the hotspot stay up. Auto mode picks the best option that is available.</p>
         </div>
         <div class="engine-grid">
+          <article class="engine" data-reveal>
+            <div class="engine-top"><span class="engine-no">01</span><span class="badge">No Airplane mode</span></div>
+            <h3>Data <span class="engine-alias">Shizuku</span></h3>
+            <p class="engine-desc">Switches mobile data off and on through Shizuku. Airplane mode, Wi-Fi, and the hotspot are never touched.</p>
+            <dl class="spec">
+              <div class="spec-row"><dt>Requirement</dt><dd>Shizuku helper running and granted</dd></div>
+              <div class="spec-row"><dt>Reliability</dt><dd><span class="meter" aria-hidden="true"><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i></span>High on Android 11+</dd></div>
+              <div class="spec-row"><dt>Screen state</dt><dd>Can stay off or locked</dd></div>
+            </dl>
+            <p class="engine-note"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-signal"/></svg>Uses <code>cmd phone data</code>, with <code>svc data</code> as a fallback.</p>
+          </article>
           <article class="engine engine--direct" data-reveal>
-            <div class="engine-top"><span class="engine-no">01</span><span class="badge badge--lime">Recommended</span></div>
+            <div class="engine-top"><span class="engine-no">02</span><span class="badge badge--lime">Recommended</span></div>
             <h3>Direct <span class="engine-alias">ADB</span></h3>
             <p class="engine-desc">Writes the Airplane mode secure setting directly. No screen tapping, no Settings app, no visible UI.</p>
             <dl class="spec">
@@ -237,7 +249,7 @@
             <p class="engine-note"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-terminal"/></svg>Some OEMs still block secure-setting writes in the background.</p>
           </article>
           <article class="engine" data-reveal>
-            <div class="engine-top"><span class="engine-no">02</span><span class="badge">No PC</span></div>
+            <div class="engine-top"><span class="engine-no">03</span><span class="badge">No PC</span></div>
             <h3>Accessibility</h3>
             <p class="engine-desc">Opens the Airplane mode Settings page and activates the switch through Android's accessibility service.</p>
             <dl class="spec">
@@ -248,7 +260,7 @@
             <p class="engine-note"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-access"/></svg>Best fallback when you cannot run ADB. No computer required.</p>
           </article>
           <article class="engine" data-reveal>
-            <div class="engine-top"><span class="engine-no">03</span><span class="badge">Fallback</span></div>
+            <div class="engine-top"><span class="engine-no">04</span><span class="badge">Fallback</span></div>
             <h3>Quick Settings</h3>
             <p class="engine-desc">Pulls down the Quick Settings shade and activates the Airplane tile. Uses calibrated coordinates if text matching fails.</p>
             <dl class="spec">
@@ -259,7 +271,7 @@
             <p class="engine-note"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-tiles"/></svg>For skins where the Settings switch is hard to match.</p>
           </article>
         </div>
-        <p class="auto-note"><strong>Auto mode</strong> resolves Direct → Accessibility → Quick Settings and records the engine it used in the notification and local log. <a href="#setup">Set up an engine</a>.</p>
+        <p class="auto-note"><strong>Auto mode</strong> resolves Data → Direct → Quick Settings → Settings page and records the engine it used in the notification and local log. <a href="#setup">Set up an engine</a>.</p>
       </div>
     </section>
 
@@ -267,8 +279,8 @@
       <div class="shell">
         <div class="section-head">
           <p class="kicker"><span>03</span> SETUP</p>
-          <h2 id="setup-title">Three steps, one optional command.</h2>
-          <p class="section-intro">Install the APK, grant Direct access or enable Accessibility, then arm the timer. Direct needs a computer once. The accessibility engines do not.</p>
+          <h2 id="setup-title">Three steps, no root.</h2>
+          <p class="section-intro">Install the APK, connect one engine (Shizuku, a Direct grant, or Accessibility), then arm the timer. Direct needs a computer once; Shizuku can start on the phone on Android 11+.</p>
         </div>
         <ol class="setup-timeline">
           <li class="setup-step">
@@ -297,14 +309,14 @@
                   <span class="prompt" aria-hidden="true">$</span><code id="adb-grant">adb shell pm grant dev.t9.apktools android.permission.WRITE_SECURE_SETTINGS</code>
                 </div>
               </div>
-              <p class="step-note">The grant survives reboots and app updates. It is removed when you uninstall the app. No computer? Skip this and enable <strong>Settings → Accessibility → T9 APK Tools</strong> instead. That path needs the screen on and unlocked.</p>
+              <p class="step-note">The grant survives reboots and app updates. It is removed when you uninstall the app. No computer? Install the <a href="https://shizuku.rikka.app/download/">Shizuku helper</a>, start it, then use <strong>SETUP → CONNECT SHIZUKU</strong> for the no-Airplane Data engine. Or enable <strong>Settings → Accessibility → T9 Network Reset</strong> for the UI engines, which need the screen on and unlocked.</p>
             </div>
           </li>
           <li class="setup-step">
             <div class="step-marker" aria-hidden="true">03</div>
             <div class="step-body">
               <div class="step-head"><h3>Arm the timer</h3><span class="step-tag">About a minute</span></div>
-              <p>Allow notifications and exact alarms, set the countdown (15:00 by default), choose Auto, and start. Set the app to Unrestricted in battery settings. Leave the phone unlocked if you use Accessibility or Quick Settings.</p>
+              <p>Allow notifications and exact alarms, set the countdown (15:00 by default), choose Auto, and start. Set the app to Unrestricted in battery settings. Auto uses Data when Shizuku is <code>READY</code>. Leave the phone unlocked if you use Accessibility or Quick Settings.</p>
               <p class="step-note">Android 13 and later may require allowing restricted settings for a sideloaded app before the Accessibility service can be enabled.</p>
             </div>
           </li>
@@ -317,7 +329,7 @@
         <div class="section-head">
           <p class="kicker"><span>04</span> THE RESET</p>
           <h2 id="sequence-title">What happens when the timer ends.</h2>
-          <p class="section-intro">The run is visible in a foreground notification. Airplane mode is restored even when the toggle or the IP check fails.</p>
+          <p class="section-intro">The run is visible in a foreground notification. Airplane mode is restored even when the toggle or the IP check fails; the Data engine never changes it.</p>
         </div>
         <div class="sequence-panel" data-reveal>
           <div class="sequence-head">
@@ -327,13 +339,13 @@
           <ol class="sequence">
             <li><span class="seq-no">01</span><h3>Timer ends</h3><p>The exact alarm fires and the foreground service starts.</p></li>
             <li><span class="seq-no">02</span><h3>Read before</h3><p>Current public IP, with two fallback lookup services.</p></li>
-            <li><span class="seq-no">03</span><h3>Airplane on</h3><p>The chosen engine writes the setting or taps the switch or tile.</p></li>
-            <li><span class="seq-no">04</span><h3>Hold ~3 s</h3><p>The radios drop and the carrier session can be torn down.</p></li>
-            <li><span class="seq-no">05</span><h3>Airplane off</h3><p>The app restores Airplane mode off and waits for mobile data.</p></li>
+            <li><span class="seq-no">03</span><h3>Network cycle</h3><p>The chosen engine writes the Airplane setting, taps the switch or tile, or switches mobile data through Shizuku.</p></li>
+            <li><span class="seq-no">04</span><h3>Hold 3–12 s</h3><p>The radios drop and the carrier session can be torn down.</p></li>
+            <li><span class="seq-no">05</span><h3>Restore</h3><p>Airplane mode returns to its earlier state, or mobile data comes back on.</p></li>
             <li><span class="seq-no">06</span><h3>Read after</h3><p>A second lookup, then a comparison and a local log entry.</p></li>
             <li><span class="seq-no">07</span><h3>Log + re-arm</h3><p>Notify the result and schedule the next reset if active.</p></li>
           </ol>
-          <p class="sequence-foot">Hotspot restore is attempted only if enabled, and it is experimental. Connected clients may still need to reconnect.</p>
+          <p class="sequence-foot">Hotspot restore is attempted only if enabled, and it is experimental. Connected clients may still need to reconnect. The Data engine leaves Wi-Fi and the hotspot untouched.</p>
         </div>
       </div>
     </section>
@@ -378,7 +390,7 @@
         </div>
         <div class="limits-grid">
           <article class="limit" data-reveal><span class="limit-no">01</span><h3>CGNAT may return the same address.</h3><p>The carrier decides whether a reconnect gets a new address. CGNAT may hand back the same address; retry or toggle data off/on. Same IP is a normal result, not a failed toggle.</p></article>
-          <article class="limit" data-reveal><span class="limit-no">02</span><h3>The hotspot may drop.</h3><p>Airplane mode turns off Wi-Fi and the hotspot. Restoring the hotspot is experimental and OEM-dependent. Connected clients may need to reconnect.</p></article>
+          <article class="limit" data-reveal><span class="limit-no">02</span><h3>The hotspot may drop.</h3><p>Airplane mode turns off Wi-Fi and the hotspot. Restoring the hotspot is experimental and OEM-dependent. Connected clients may need to reconnect. The Data engine avoids this: it never touches Wi-Fi or the hotspot.</p></article>
           <article class="limit" data-reveal><span class="limit-no">03</span><h3>UI automation needs an unlocked screen.</h3><p>Accessibility and Quick Settings cannot operate on a locked device. Direct can, though some OEMs still block secure-setting writes in the background.</p></article>
           <article class="limit" data-reveal><span class="limit-no">04</span><h3>OEM behavior varies.</h3><p>Settings labels, Quick Settings layouts, and battery restrictions differ across Samsung, Xiaomi, Oppo, Vivo, OnePlus, Realme, and others. Node matching has fallbacks, not a guarantee.</p></article>
           <article class="limit" data-reveal><span class="limit-no">05</span><h3>It is not a VPN.</h3><p>No traffic is encrypted, proxied, or hidden; it cycles a radio state. A VPN masks the carrier address and makes a before-and-after comparison meaningless, so turn it off when testing.</p></article>
@@ -397,10 +409,10 @@
           <a class="text-link" href="https://github.com/engrtarun/t9-apk-tools#readme" target="_blank" rel="noopener noreferrer">Read the README<svg class="icon" aria-hidden="true" focusable="false"><use href="#i-external"/></svg><span class="sr-only"> (opens in a new tab)</span></a>
         </div>
         <div class="faq-list">
-          <details class="faq-item" open><summary><span class="faq-question">Does it need root?</span><span class="faq-icon" aria-hidden="true"></span></summary><div class="faq-answer"><p>No. The Direct engine needs a one-time ADB grant of <code>WRITE_SECURE_SETTINGS</code>, which is a development permission grant, not root. The Accessibility engine needs the accessibility service enabled, nothing more.</p></div></details>
+          <details class="faq-item" open><summary><span class="faq-question">Does it need root?</span><span class="faq-icon" aria-hidden="true"></span></summary><div class="faq-answer"><p>No. The Direct engine needs a one-time ADB grant of <code>WRITE_SECURE_SETTINGS</code>, which is a development permission grant, not root. The Data engine uses Shizuku, a separate helper that runs commands with the ADB shell identity, not root. The Accessibility engine needs the accessibility service enabled, nothing more.</p></div></details>
           <details class="faq-item"><summary><span class="faq-question">Why native Java instead of React Native?</span><span class="faq-icon" aria-hidden="true"></span></summary><div class="faq-answer"><p>The core is an Android <code>AccessibilityService</code>: a system-bound service with a manifest declaration, a lifecycle controlled by Android, and direct access to accessibility node trees. JavaScript cannot implement it. React Native would add a bridge and tens of megabytes while still needing the same native service. Native Java keeps the APK small and the permission behavior explicit.</p></div></details>
           <details class="faq-item"><summary><span class="faq-question">Will the IP change every time?</span><span class="faq-icon" aria-hidden="true"></span></summary><div class="faq-answer"><p>No. The carrier controls CGNAT assignment. The app automates the toggle and reports whether the address changed. CGNAT may hand back the same address; retry or toggle data off/on.</p></div></details>
-          <details class="faq-item"><summary><span class="faq-question">What happens to my hotspot?</span><span class="faq-icon" aria-hidden="true"></span></summary><div class="faq-answer"><p>Airplane mode turns it off. The optional hotspot restore is experimental and cannot guarantee that clients reconnect cleanly. You may need to turn the hotspot back on manually.</p></div></details>
+          <details class="faq-item"><summary><span class="faq-question">What happens to my hotspot?</span><span class="faq-icon" aria-hidden="true"></span></summary><div class="faq-answer"><p>Airplane mode turns it off. The optional hotspot restore is experimental and cannot guarantee that clients reconnect cleanly. You may need to turn the hotspot back on manually. The Data engine does not touch the hotspot at all; only mobile data drops for a few seconds.</p></div></details>
           <details class="faq-item"><summary><span class="faq-question">How does it affect battery life?</span><span class="faq-icon" aria-hidden="true"></span></summary><div class="faq-answer"><p>It is not an always-on VPN or a persistent scanner. The app schedules an exact alarm and runs a short foreground service when the reset starts. Set battery usage to Unrestricted; aggressive OEM managers can still kill background work.</p></div></details>
           <details class="faq-item"><summary><span class="faq-question">Is the accessibility service safe?</span><span class="faq-icon" aria-hidden="true"></span></summary><div class="faq-answer"><p>It is powerful by design: Android grants broad window access while the service is enabled. The app limits inspection and clicks to the Airplane mode flow, keeps data on-device, and stores nothing remotely. Disable the service when you are not using it.</p></div></details>
           <details class="faq-item"><summary><span class="faq-question">Can I uninstall it cleanly?</span><span class="faq-icon" aria-hidden="true"></span></summary><div class="faq-answer"><p>Yes. Uninstalling removes the app, its local logs and settings, and the ADB grant. Nothing is stored on a server.</p></div></details>

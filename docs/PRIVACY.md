@@ -143,6 +143,19 @@ binds it only after you enable the service.
 The app does not request location, phone state, contacts, storage, camera, or
 microphone permissions.
 
+### Shizuku (optional, for the Data engine)
+
+The Data engine is the only part of the app that talks to another app. If you
+install and grant Shizuku, T9 APK Tools binds a small service in Shizuku and
+sends it exactly two kinds of request: switch mobile data off, switch it back on.
+The service returns the exit code of `cmd phone data` or `svc data`.
+
+- Shizuku runs as the ADB shell identity, not root.
+- The app does not ask Shizuku for files, packages, screen content, or logs.
+- Nothing about your network, location, or IP is sent to Shizuku.
+- The grant is managed inside Shizuku; revoke it there, or uninstall either app.
+- The app works without Shizuku.
+
 ## Deletion
 
 You can remove data in several ways:

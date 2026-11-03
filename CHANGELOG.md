@@ -3,6 +3,47 @@
 All notable changes to T9 APK Tools are recorded here. The project follows
 [Semantic Versioning](https://semver.org/).
 
+## [1.2.0] - 2026-11-03
+
+No-Airplane data reset, plus the fixes from a full review pass.
+
+### Added
+
+- **Data engine:** cycles mobile data through a Shizuku user service instead of
+  touching Airplane mode. It runs `cmd phone data disable` then `enable` with
+  the ADB shell identity, and falls back to `svc data` on builds that lack the
+  newer command. Wi-Fi, the hotspot, and Airplane mode stay as they were, and
+  the screen can stay locked.
+- Shizuku card in Setup: start instructions, a `NOT CONNECTED` / `GRANT NEEDED`
+  / `READY` pill, and a **CONNECT SHIZUKU** grant flow.
+- A third status chip on the main screen for the Shizuku engine.
+- A watchdog inside the Shizuku service process: if the app dies during the data
+  hold, mobile data is switched back on automatically.
+
+### Changed
+
+- Auto order is now Data → Direct → Quick Settings → Settings page. Data is used
+  only when Shizuku is connected and granted.
+- The engine dialog, Setup radio group, help text, and logs name all four
+  engines.
+- A data run waits for a working network without requiring Airplane mode to be
+  off, because that engine never changes Airplane mode.
+
+### Fixed
+
+- History and the IP card refresh when a reading is written, and a duplicate
+  reading moves its database row instead of leaving the card time behind.
+- Reset runs promoted from an idle start enter the foreground properly, and the
+  wake lock is renewed across long runs.
+- The database keeps exactly 300 events, 150 runs, and 80 IP readings.
+- "Best window" uses local time and real three-hour blocks, so DST no longer
+  shifts the insight.
+- IPv4 and IPv6 readings are validated strictly, so an HTML error page or a
+  mismatched endpoint response is rejected instead of stored.
+- Clearing the log also drops queued lines from the in-memory buffer.
+- Alarm and boot runs are labelled as timer runs, not manual ones.
+- A fast filter change in History can no longer paint an older query result.
+
 ## [1.1.1] - 2026-11-02
 
 Hardening pass on the new storage layer, from a second code review.

@@ -251,6 +251,25 @@
                 android:text="ADB DIRECT OFF"
                 android:textColor="@color/muted"
                 android:textSize="10sp" />
+
+            <Space
+                android:layout_width="8dp"
+                android:layout_height="1dp" />
+
+            <TextView
+                android:id="@+id/chipShell"
+                android:layout_width="0dp"
+                android:layout_height="48dp"
+                android:layout_weight="1"
+                android:background="@drawable/bg_pill"
+                android:ellipsize="end"
+                android:fontFamily="sans-serif-medium"
+                android:gravity="center"
+                android:letterSpacing="0.04"
+                android:singleLine="true"
+                android:text="SHIZUKU OFF"
+                android:textColor="@color/muted"
+                android:textSize="10sp" />
         </LinearLayout>
 
         <LinearLayout style="@style/T9Card">

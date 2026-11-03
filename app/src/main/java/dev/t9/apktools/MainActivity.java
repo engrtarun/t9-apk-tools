@@ -73,6 +73,7 @@ public class MainActivity extends AppCompatActivity {
     private androidx.appcompat.widget.SwitchCompat switchRepeat;
     private TextView chipAccess;
     private TextView chipDirect;
+    private TextView chipShell;
     private TextView tvIpBadge;
     private TextView tvIp;
     private TextView tvIpPrev;
@@ -213,6 +214,7 @@ public class MainActivity extends AppCompatActivity {
         switchRepeat = findViewById(R.id.switchRepeat);
         chipAccess = findViewById(R.id.chipAccess);
         chipDirect = findViewById(R.id.chipDirect);
+        chipShell = findViewById(R.id.chipShell);
         tvIpBadge = findViewById(R.id.tvIpBadge);
         tvIp = findViewById(R.id.tvIp);
         tvIpPrev = findViewById(R.id.tvIpPrev);
@@ -316,6 +318,11 @@ public class MainActivity extends AppCompatActivity {
         });
 
         chipDirect.setOnClickListener(v -> {
+            v.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP);
+            startActivity(new Intent(this, SetupActivity.class));
+        });
+
+        chipShell.setOnClickListener(v -> {
             v.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP);
             startActivity(new Intent(this, SetupActivity.class));
         });
@@ -465,15 +472,17 @@ public class MainActivity extends AppCompatActivity {
 
     private boolean hasEngine() {
         return AccessibilityResetService.isEnabled(this)
-                || ResetEngine.canWriteDirect(this);
+                || ResetEngine.canWriteDirect(this)
+                || ShellEngine.available();
     }
 
     private void showEngineDialog() {
         new MaterialAlertDialogBuilder(this)
                 .setTitle("No engine is enabled")
-                .setMessage("The app needs one way to toggle Airplane mode. "
-                        + "Turn on the Accessibility service in Setup, or grant the one-time ADB "
-                        + "permission. ADB is the only option that works on a locked phone.")
+                .setMessage("The app needs one way to reset the network. Connect Shizuku for "
+                        + "the no-Airplane data engine, grant the one-time ADB permission for "
+                        + "the Direct engine, or enable the Accessibility service in Setup. "
+                        + "Direct and Shizuku both work on a locked phone.")
                 .setNegativeButton("Cancel", null)
                 .setPositiveButton("Open Setup", (dialog, which) ->
                         startActivity(new Intent(this, SetupActivity.class)))
@@ -682,6 +691,14 @@ public class MainActivity extends AppCompatActivity {
         chipDirect.setContentDescription(direct
                 ? "The ADB direct engine is granted. Tap to open setup."
                 : "The ADB direct engine is not granted. Tap to open setup and copy the command.");
+
+        boolean shell = ShellEngine.available();
+        chipShell.setText(shell ? "SHIZUKU ON" : "SHIZUKU OFF");
+        chipShell.setTextColor(ContextCompat.getColor(this,
+                shell ? R.color.lime : R.color.muted));
+        chipShell.setContentDescription(shell
+                ? "The Shizuku data engine is connected. Tap to open setup."
+                : "The Shizuku data engine is not connected. Tap to open setup and connect it.");
     }
 
     private void syncResultCard() {

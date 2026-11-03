@@ -99,7 +99,14 @@ public class HistoryActivity extends AppCompatActivity {
             int streak = db.sameAddressStreak();
             long size = db.sizeBytes();
             List<T9Database.RunRow> rows = db.runs(active, PAGE);
-            runOnUiThread(() -> bind(stats, window, streak, size, rows));
+            runOnUiThread(() -> {
+                /* A fast tap on another filter may already have queued a fresher
+                   query; never let the older result paint over it. */
+                if (!active.equals(filter)) {
+                    return;
+                }
+                bind(stats, window, streak, size, rows);
+            });
         });
     }
 

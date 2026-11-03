@@ -156,6 +156,22 @@ public final class T9Database extends SQLiteOpenHelper {
         getWritableDatabase().delete("ip_check", null, null);
     }
 
+    /**
+     * Same address and kind inside the dedupe window: refresh the timestamp of
+     * the existing row instead of stacking a duplicate on it.
+     */
+    public void touchIpCheck(long oldAt, String ip, String kind, long newAt) {
+        if (ip == null || ip.isEmpty()) {
+            return;
+        }
+        ContentValues values = new ContentValues(1);
+        values.put("at", newAt);
+        getWritableDatabase().update("ip_check", values,
+                "at = ? AND ip = ? AND kind = ?",
+                new String[]{String.valueOf(oldAt), ip,
+                        kind == null ? KIND_MANUAL : kind});
+    }
+
     /* ---------- run ---------- */
 
     public static final class RunRow {
@@ -276,9 +292,12 @@ public final class T9Database extends SQLiteOpenHelper {
     }
 
     public Window bestWindow() {
-        long offset = java.util.TimeZone.getDefault().getOffset(System.currentTimeMillis());
+        /* SQLite applies the device timezone per row ('localtime'), so runs from
+           the other DST period keep their real local hour instead of shifting by
+           whatever the current offset happens to be. */
         Cursor cursor = getReadableDatabase().rawQuery(
-                "SELECT ((at + " + offset + ")/10800000)%8 AS b, COUNT(*), SUM(changed)"
+                "SELECT (CAST(strftime('%H', at/1000.0, 'unixepoch', 'localtime')"
+                        + " AS INTEGER)/3)%8 AS b, COUNT(*), SUM(changed)"
                         + " FROM run WHERE ok=1"
                         + " GROUP BY b HAVING COUNT(*) >= 2"
                         + " ORDER BY (SUM(changed)*1.0/COUNT(*)) DESC, COUNT(*) DESC LIMIT 1", null);
@@ -295,7 +314,7 @@ public final class T9Database extends SQLiteOpenHelper {
     /** How many of the newest runs ended on the exact same address. */
     public int sameAddressStreak() {
         Cursor cursor = getReadableDatabase().rawQuery(
-                "SELECT after_ip FROM run WHERE after_ip IS NOT NULL"
+                "SELECT after_ip FROM run WHERE ok=1 AND after_ip IS NOT NULL"
                         + " ORDER BY at DESC LIMIT 10", null);
         int streak = 0;
         String first = null;
@@ -404,11 +423,11 @@ public final class T9Database extends SQLiteOpenHelper {
         SQLiteDatabase db = getWritableDatabase();
         db.beginTransaction();
         try {
-            db.execSQL("DELETE FROM ip_check WHERE id <= (SELECT MAX(id) - " + KEEP_CHECKS
+            db.execSQL("DELETE FROM ip_check WHERE id < (SELECT MAX(id) - " + (KEEP_CHECKS - 1)
                     + " FROM ip_check)");
-            db.execSQL("DELETE FROM run WHERE id <= (SELECT MAX(id) - " + KEEP_RUNS
+            db.execSQL("DELETE FROM run WHERE id < (SELECT MAX(id) - " + (KEEP_RUNS - 1)
                     + " FROM run)");
-            db.execSQL("DELETE FROM event WHERE id <= (SELECT MAX(id) - " + KEEP_EVENTS
+            db.execSQL("DELETE FROM event WHERE id < (SELECT MAX(id) - " + (KEEP_EVENTS - 1)
                     + " FROM event)");
             db.setTransactionSuccessful();
         } finally {

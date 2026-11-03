@@ -29,7 +29,8 @@ public class BootReceiver extends BroadcastReceiver {
             try {
                 ContextCompat.startForegroundService(context,
                         new Intent(context, ResetService.class)
-                                .setAction(ResetService.ACTION_RUN_NOW));
+                                .setAction(ResetService.ACTION_RUN_NOW)
+                                .putExtra(ResetService.EXTRA_MANUAL, false));
             } catch (Exception e) {
                 LogStore.add(LogStore.WARN, "Missed timer waiting for the app to open");
             }

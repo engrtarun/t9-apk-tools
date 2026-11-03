@@ -11,12 +11,13 @@ automatically a bug. See
 ## Quick triage
 
 1. Open the app → **SETUP**.
-2. Check the five status pills in **SYSTEM ACCESS** and **DIRECT MODE —
-   OPTIONAL**:
+2. Check the six status pills in **SYSTEM ACCESS**, **SHIZUKU — NO AIRPLANE**,
+   and **DIRECT MODE — OPTIONAL**:
    - **Accessibility service** — `ON` or `OFF`
    - **Notifications** — `ON` or `OFF`
    - **Exact alarms** — `ON`, `OFF`, or `DEFAULT`
    - **Battery optimization** — `EXEMPT` or `OPTIMIZED`
+   - **Shizuku** — `READY`, `GRANT NEEDED`, or `NOT CONNECTED`
    - **Direct** — `GRANTED` or `NOT GRANTED`
 3. Read the **ACTIVITY** panel on the main screen. It shows the newest 10 of
    the 120 stored entries.
@@ -30,6 +31,9 @@ automatically a bug. See
 | Symptom | Likely cause | Fix |
 | --- | --- | --- |
 | Timer reaches zero, but Airplane mode never changes | No usable engine; Direct grant missing; accessibility off or disconnected; locked keyguard; OEM rejects the write | Check the Setup pills, enable accessibility or grant ADB, unlock the phone, then test. See [Toggle never happens](#toggle-never-happens). |
+| Data run stops with `Shizuku is not connected or not granted` | Shizuku is stopped or not installed; the app was not granted; the phone rebooted | Start Shizuku, then **SETUP** → **CONNECT SHIZUKU**. See [Shizuku shows NOT CONNECTED](#shizuku-shows-not-connected). |
+| Data run logs `Mobile data would not switch off` | `cmd phone data` is missing and `svc data` is broken on this build | Read the exit codes in the log, then use Direct or an accessibility engine. See [Mobile data command failed](#mobile-data-command-failed). |
+| Data run completes but the IP is unchanged | CGNAT kept the mapping, hold was short, VPN active | Lengthen the hold, retry, and compare before/after. See [IP stayed the same after a data reset](#ip-stayed-the-same-after-a-data-reset). |
 | Airplane toggles, but the public IP is unchanged | CGNAT, sticky mapping, same address reassigned, VPN, IPv6, or the check ran too early | Not necessarily a failure. Retry, lengthen the Airplane pause, disable VPN, and compare before/after in the log. See [Same public IP](#same-public-ip). |
 | Hotspot disappears and stays off | Airplane mode turns off Wi-Fi/hotspot; restore is off or experimental; accessibility is off; the reset failed before restore | Turn the hotspot on manually, enable **Re-enable Wi-Fi hotspot after reset** only if you have accessibility, and test. See [Hotspot disappears](#hotspot-disappears-and-does-not-come-back). |
 | Timer or notification disappears; no reset | Foreground service killed; force-stop; OEM battery manager; app updated | Set battery to Unrestricted, allow OEM autostart, reopen the app, and re-arm. See [Service killed](#service-killed-or-timer-disappears). |
@@ -53,7 +57,12 @@ automatically a bug. See
 
 | Message | What it means |
 | --- | --- |
-| `No engine enabled. Turn on Accessibility in Setup, or grant ADB access.` | Auto found neither a Direct grant nor an enabled accessibility service. |
+| `No engine enabled. Grant ADB access, connect Shizuku, or turn on Accessibility in Setup.` | Auto found no connected Shizuku, no Direct grant, and no enabled accessibility service. |
+| `Shizuku is not connected or not granted. Connect it in Setup.` | The Data engine was selected, but the binder is dead or `checkSelfPermission` failed. |
+| `Shizuku did not start the shell service. Open Shizuku, confirm it is running, then try again.` | `bindUserService` did not connect within 15 seconds. |
+| `Mobile data off (cmd-phone-disable) — Airplane mode untouched` | The shell command accepted the disable. The suffix says which command worked. |
+| `fail:cmd=…,svc=…` | Both telephony commands failed with those exit codes; the Data engine cannot run on this build. |
+| `Mobile data is reconnecting (cmd-phone-enable)` | The shell command accepted the enable. The IP check follows. |
 | `ADB permission is missing. Open Setup and copy the grant command.` | The Direct engine was selected, but `WRITE_SECURE_SETTINGS` is not granted to this user. |
 | `Accessibility is enabled but not connected. Toggle it off/on in Android Settings.` | The service is listed as enabled, but no live service instance responded within 4 seconds. |
 | `Direct write was rejected by the system` | `putInt` failed or the setting did not read back within 5 seconds. |
@@ -68,17 +77,18 @@ automatically a bug. See
 
 Work through the engine path:
 
-1. **Is any engine available?** In **SETUP**, check **Accessibility service** and
-   **Direct**. If both are off, Auto cannot do anything. Enable one, or use
-   **Accessibility — Settings UI** explicitly after enabling the service.
-2. **Is Auto choosing the path you expect?** Auto uses Direct if granted. If the
-   grant is present but the OEM ignores direct writes, Auto fails at Direct; it
-   does not fall through. Select **Accessibility — Settings UI** or **Quick
-   Settings tile**.
+1. **Is any engine available?** In **SETUP**, check **Shizuku**, **Direct**, and
+   **Accessibility service**. If all are off, Auto cannot do anything. Enable
+   one, or use **Accessibility — Settings UI** explicitly after enabling the
+   service.
+2. **Is Auto choosing the path you expect?** Auto uses Data when Shizuku is
+   `READY`, then Direct if granted. If the Direct grant is present but the OEM
+   ignores direct writes, Auto fails at Direct; it does not fall through. Select
+   **Accessibility — Settings UI** or **Quick Settings tile**.
 3. **Is the keyguard locked?** This only blocks the accessibility engines. They
    wait up to 90 seconds, post **Unlock to finish the reset**, then give up with
-   `Phone stayed locked`. Direct skips this wait and writes the secure setting
-   with the screen off or locked, OEM permitting.
+   `Phone stayed locked`. Data and Direct skip this wait and work with the
+   screen off or locked, OEM permitting.
 4. **Is this a Quick Settings layout problem?** The tile may not be on the first
    page, or the label may not contain `airplane`/`flight mode`. Put the tile in
    the top-left and calibrate, or use the Settings engine.
@@ -103,7 +113,8 @@ This is the most common "failure" and usually is not one:
 
 Things worth trying:
 
-1. Increase **Airplane mode stays on** to 5–12 seconds.
+1. Increase **Airplane mode stays on** to 5–12 seconds. For the Data engine, the
+   same slider sets the mobile-data hold, with a floor of 4 seconds.
 2. Retry later; carrier pools and leases change over time.
 3. Turn the VPN off before testing.
 4. Toggle mobile data manually, or reboot the phone, then try again.
@@ -135,7 +146,7 @@ Fix:
 4. Keep connected clients in mind: even if the hotspot returns, they may need
    to reconnect.
 
-See [SETUP.md](SETUP.md#10-hotspot-caveat).
+See [SETUP.md](SETUP.md#11-hotspot-caveat).
 
 ## Service killed or timer disappears
 
@@ -387,11 +398,11 @@ The accessibility engines check the keyguard before they start:
   and run again.`
 
 Direct does not check the keyguard; it writes the secure setting with the screen
-off or locked, though some OEMs block that write in the background. For the
-accessibility engines, unlock the phone when the timer is due, enable **Wake
-screen and wait for unlock**, or run the reset while the phone is already
-unlocked. If the screen wake option is off, the phone may not light up to show
-the notification.
+off or locked, though some OEMs block that write in the background. The Data
+engine does not need the screen at all. For the accessibility engines, unlock
+the phone when the timer is due, enable **Wake screen and wait for unlock**, or
+run the reset while the phone is already unlocked. If the screen wake option is
+off, the phone may not light up to show the notification.
 
 ## Network did not come back in 60 s
 
@@ -426,6 +437,10 @@ The app tries Direct first for the restore, then the Settings UI, but it cannot
 override an OEM that refuses both. If the process was killed mid-run, no
 in-process restore can run. See
 [Safety restore](HOW-IT-WORKS.md#safety-restore).
+
+The Data engine does not touch Airplane mode at all. If a Data run fails, check
+mobile data instead: the log should end with `Mobile data is reconnecting`. A
+watchdog in the shell process re-enables data if the app died during the hold.
 
 ## Could not read the public IP
 
@@ -478,6 +493,83 @@ unchanged.
 - Report the device model, Android build, and exact log line. This is
   device-specific behavior, not something the app can force.
 
+## Shizuku shows NOT CONNECTED
+
+The Setup pill checks two things: `Shizuku.pingBinder()` (or `Sui.isSui()`) and
+`Shizuku.checkSelfPermission()`.
+
+- `NOT CONNECTED` means the binder is dead: Shizuku is not installed, was
+  stopped, or the phone rebooted. Start the Shizuku app and wait for its own
+  status to say it is running.
+- `GRANT NEEDED` means Shizuku is running but this app has no grant. Tap
+  **CONNECT SHIZUKU** and allow the system dialog.
+
+On Android 11 and newer, Shizuku can be started on the phone through wireless
+debugging. On older builds it needs a computer and the start command shown in
+its app. Root and Sui survive a reboot; a plain non-rooted install does not.
+
+If the pill still says `NOT CONNECTED` while Shizuku reports running:
+
+1. Open Shizuku and confirm its own service is alive.
+2. Force-stop T9 APK Tools and reopen it. The binder is handed over when the app
+   process starts.
+3. Reboot, start Shizuku, then open T9 APK Tools.
+4. Check battery restrictions for both apps; some OEMs kill Shizuku in the
+   background.
+
+A Data run with a dead binder stops before touching anything. Auto skips Data
+and uses the next available engine instead.
+
+## Mobile data command failed
+
+The Data engine runs two commands inside a Shizuku user service:
+
+```text
+/system/bin/cmd phone data disable
+/system/bin/svc data disable
+```
+
+`cmd phone data` exists on Android 11 and newer. `svc data` is a legacy entry
+point that some Android 11–13 builds ship broken and some Android 14+ builds ship
+working. The app tries `cmd phone` first and falls back to `svc`.
+
+A failure looks like:
+
+```text
+Mobile data would not switch off (fail:cmd=1,svc=1)
+```
+
+What to do:
+
+- Confirm the Shizuku pill is `READY`; a missing grant fails earlier with a
+  different message.
+- Try **RESET NOW** once more. A bind timeout is transient.
+- If both exit codes are non-zero, this build does not expose either command to
+  the shell UID. Use the Direct engine or an accessibility engine.
+- Report the device model, Android build, and the exact `fail:` line. This is
+  build-specific behavior.
+
+The engine always runs the enable path before it gives up, and a watchdog in the
+shell process turns data back on if the app dies during the hold. Mobile data
+should not be left off by a failed cycle.
+
+## IP stayed the same after a data reset
+
+The cycle ran, but the carrier kept the mapping. This is common under CGNAT.
+
+1. Read the log: `Mobile data off` and `Mobile data is reconnecting` prove the
+   cycle ran; `Public IP after … (unchanged)` is the verdict.
+2. Lengthen **Airplane mode stays on** to 8–12 seconds. The Data engine uses it
+   as the mobile-data hold, with a floor of 4 seconds.
+3. Retry. A fresh data context does not always get a new public address.
+4. Turn off VPNs before testing; otherwise the app sees the VPN exit.
+5. Compare the before and after lines, not only the badge.
+6. If several cycles keep the same address, the carrier is holding the session.
+   The app cannot force a change.
+
+The Data engine does not touch Wi-Fi or the hotspot, so a same-IP result is not
+caused by the hotspot dropping.
+
 ## Collecting a useful report
 
 Include:
@@ -486,6 +578,7 @@ Include:
 - Android version, device model, and OEM skin;
 - the engine selected in **SETUP**;
 - whether the ADB grant is present and the output of the `dumpsys` check;
+- the Shizuku pill state (`READY`, `GRANT NEEDED`, or `NOT CONNECTED`);
 - whether accessibility is on and connected;
 - whether the phone was unlocked and the screen on;
 - if the app closed by itself, reopen it and use **Last launch crashed** →

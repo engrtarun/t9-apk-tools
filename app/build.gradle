@@ -45,6 +45,11 @@ android {
         }
     }
 
+    buildFeatures {
+        // The Shizuku user service talks over a small AIDL interface.
+        aidl true
+    }
+
     buildTypes {
         release {
             // Keep release builds unminified: the APK is small, and a readable
@@ -85,4 +90,7 @@ dependencies {
     implementation 'androidx.appcompat:appcompat:1.6.1'
     implementation 'androidx.core:core:1.12.0'
     implementation 'com.google.android.material:material:1.11.0'
+    // Shizuku: works with or without root — used only when the user connects it.
+    implementation 'dev.rikka.shizuku:api:13.1.5'
+    implementation 'dev.rikka.shizuku:provider:13.1.5'
 }

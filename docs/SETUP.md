@@ -6,7 +6,7 @@ phone, not an emulator. The app is sideloaded; there is no Play Store listing.
 - Package: `dev.t9.apktools`
 - Android 8.0+ (minSdk 26), target 34
 - No root, no account, no analytics
-- Optional PC only for the Direct engine's one-time ADB grant
+- Optional PC for the Direct grant, or to start Shizuku on Android 10 and older
 
 A new public IP is not guaranteed. Setup makes the toggle reliable; it cannot
 make the carrier assign a different address.
@@ -158,19 +158,75 @@ Open **SETUP** → **RESET ENGINE**. The options are:
 
 | Option | What it does | Needs |
 | --- | --- | --- |
-| **Auto (recommended)** | Direct if granted; otherwise Quick Settings, then Settings UI | Direct grant or accessibility |
+| **Auto (recommended)** | Data if Shizuku is connected and granted; otherwise Direct, then Quick Settings, then the Settings UI | Shizuku, a Direct grant, or accessibility |
+| **Data — Shizuku, no Airplane mode** | Switches mobile data off and on through Shizuku; Airplane mode, Wi-Fi, and the hotspot are untouched | Shizuku installed, running, and granted; no screen required |
 | **Direct — ADB grant, instant** | Writes the Airplane secure setting; no UI automation | One-time ADB grant; runs screen-off or locked (OEM permitting) |
 | **Accessibility — Settings UI** | Opens the Airplane mode page and clicks the switch | Accessibility on, phone unlocked |
 | **Quick Settings tile** | Opens the shade and clicks the tile, with percentage fallback | Accessibility on, phone unlocked, tile visible |
 
-Auto order at run time is Direct → Quick Settings → Settings UI. If Direct is
-granted but the OEM rejects the write, Auto does not fall through to
+Auto order at run time is Data → Direct → Quick Settings → Settings UI. Auto uses
+Data only when Shizuku reports `READY`; otherwise it skips to the next engine.
+If Direct is granted but the OEM rejects the write, Auto does not fall through to
 accessibility; the run fails. Choose Accessibility explicitly on such a device.
 
 The strategy is read when the reset runs, so changing it while a timer is armed
 affects the next reset.
 
-## 7. Optional: ADB grant for Direct
+## 7. Data reset (optional, no Airplane mode)
+
+The Data engine cycles mobile data instead of Airplane mode, so Wi-Fi, the
+hotspot, and the Airplane setting are never touched. It needs the Shizuku helper
+app; it does not need root, and it can run with the screen locked.
+
+1. Install Shizuku from
+   [shizuku.rikka.app/download](https://shizuku.rikka.app/download/).
+2. Start Shizuku:
+   - **Android 11 and newer:** open Shizuku, choose **Start via wireless
+     debugging**, enable **Wireless debugging** in Developer options, pair, and
+     start. No computer is needed.
+   - **Android 10 and older, or if the on-device start fails:** connect the
+     phone to a computer with USB debugging and run the start command Shizuku
+     shows. It is usually
+     `adb shell sh /storage/emulated/0/Android/data/moe.shizuku.privileged.api/start.sh`.
+3. Open T9 APK Tools → **SETUP**. The **SHIZUKU — NO AIRPLANE** card shows
+   `NOT CONNECTED` while Shizuku is not running.
+4. Tap **CONNECT SHIZUKU**. Android shows a permission dialog; allow T9 APK
+   Tools. The pill changes to `READY`.
+5. Choose **Data reset — Shizuku, no Airplane mode**, or leave **Auto** on. Auto
+   uses Data only when the pill says `READY`.
+6. Test with **RESET NOW** while watching the **ACTIVITY** panel.
+
+A working run logs:
+
+```text
+Data engine: Shizuku shell, Airplane mode untouched
+Mobile data off (cmd-phone-disable) — Airplane mode untouched
+Data hold finished — switching mobile data back on
+Mobile data is reconnecting (cmd-phone-enable)
+```
+
+The hold time is the **Airplane mode stays on** value in **SETUP** → **TIMING**,
+with a floor of 4 seconds, because a data context needs longer than an Airplane
+toggle to release. 4–8 seconds is a reasonable range.
+
+If Shizuku is not running, the pill reads `NOT CONNECTED`, Auto skips Data, and
+an explicit Data run stops with
+`Shizuku is not connected or not granted. Connect it in Setup.` instead of
+falling back to Airplane mode.
+
+Notes:
+
+- Shizuku stops when the phone reboots unless it runs through Sui or root. Start
+  it again after a reboot.
+- The engine tries `cmd phone data disable|enable` first. Android 11+ has the
+  command; some OEM builds and older releases do not, so it falls back to
+  `/system/bin/svc data disable|enable`. Both are build-dependent; the log shows
+  which one worked.
+- The data context drop can take mobile data away from hotspot clients for the
+  hold window. Wi-Fi itself stays up.
+- A new public IP is still not guaranteed.
+
+## 8. Optional: ADB grant for Direct
 
 This is the only step that needs a computer, and it is optional. The grant:
 
@@ -330,13 +386,14 @@ If the phone has multiple users or a work profile, grant or revoke the
 permission for the user that actually runs the app. `pm` accepts
 `--user <id>` before the package name on current Android versions.
 
-## 8. Tune timing, IP checks, and Quick Settings
+## 9. Tune timing, IP checks, and Quick Settings
 
 Open **SETUP** → **TIMING**.
 
 - **Airplane mode stays on** — 2–12 seconds, default 3. The app's own hint says
   3–5 seconds gives the radio time to detach and reattach. A longer pause is
-  not a guarantee of a new IP.
+  not a guarantee of a new IP. The Data engine uses the same value as its
+  mobile-data pause, with a floor of 4 seconds.
 - **Wake screen and wait for unlock** — default on. Accessibility cannot drive
   a locked screen. This wait applies only to the accessibility engines; Direct
   skips it and runs screen-off or locked, though some OEMs block secure-setting
@@ -361,7 +418,7 @@ capture a tap for you. Test with **RESET NOW** after changing them.
 - **RESET ALL SETTINGS & LOGS** stops the timer, clears the activity log, and
   resets preferences. It does not revoke the ADB grant or Android permissions.
 
-## 9. Arm the timer
+## 10. Arm the timer
 
 1. On the main screen, choose a preset (`5`, `10`, `15`, `20`, `30`) or
    **CUSTOM** and enter 1–180 minutes.
@@ -370,18 +427,19 @@ capture a tap for you. Test with **RESET NOW** after changing them.
 3. Tap **START … MIN TIMER**. The button changes to **CANCEL TIMER**, the ring
    counts down, and the persistent notification appears.
 4. If you are using an accessibility-based engine, leave the phone unlocked
-   and the screen available. Direct skips that wait and runs screen-off or
-   locked, OEM permitting.
+   and the screen available. Direct and Data skip that wait and run screen-off
+   or locked, OEM permitting.
 5. Cancel from the main button or from the notification's **Cancel** action.
 
 The alarm is the reliable wake-up path. The foreground service keeps a visible
 timer, but a killed service should still be replaced by the alarm if Android
 delivers it.
 
-## 10. Hotspot caveat
+## 11. Hotspot caveat
 
 Airplane mode turns off Wi-Fi and the Wi-Fi hotspot. If the hotspot was on, it
-will drop for the reset. The optional restore is experimental:
+will drop for the reset. The Data engine does not cause this: it never touches
+Wi-Fi or the hotspot. The optional restore is experimental:
 
 - it runs only after a successful reset cycle, not after an early failure;
 - it needs the accessibility service, because Android does not give normal apps
@@ -394,7 +452,7 @@ Plan for the hotspot to stay off. If connected clients matter, keep a second
 connection or turn the hotspot back on manually after the run. See
 [Hotspot disappears](TROUBLESHOOTING.md#hotspot-disappears-and-does-not-come-back).
 
-## 11. Verify a run
+## 12. Verify a run
 
 After a run, check:
 
@@ -420,6 +478,8 @@ session.` That is a normal CGNAT outcome. See
 | --- | --- |
 | Timer ends but Airplane mode never changes | [Toggle never happens](TROUBLESHOOTING.md#toggle-never-happens) |
 | Airplane toggles but the IP is unchanged | [Same public IP](TROUBLESHOOTING.md#same-public-ip) |
+| Shizuku pill says `NOT CONNECTED` | [Shizuku shows NOT CONNECTED](TROUBLESHOOTING.md#shizuku-shows-not-connected) |
+| Data run fails with `svc data` / `cmd phone` errors | [Mobile data command failed](TROUBLESHOOTING.md#mobile-data-command-failed) |
 | Hotspot is gone after the reset | [Hotspot disappears](TROUBLESHOOTING.md#hotspot-disappears-and-does-not-come-back) |
 | Timer or notification disappears | [Service killed](TROUBLESHOOTING.md#service-killed-or-timer-disappears) |
 | Accessibility toggle is greyed out | [Restricted setting](TROUBLESHOOTING.md#restricted-setting) |

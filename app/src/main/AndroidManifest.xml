@@ -84,5 +84,22 @@
                 <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
             </intent-filter>
         </receiver>
+
+        <!-- Hands the Shizuku binder to this app when Shizuku is installed and
+             running. Optional: the app works without it. -->
+        <provider
+            android:name="rikka.shizuku.ShizukuProvider"
+            android:authorities="${applicationId}.shizuku"
+            android:enabled="true"
+            android:exported="true"
+            android:multiprocess="false"
+            android:permission="android.permission.INTERACT_ACROSS_USERS_FULL" />
     </application>
+
+    <!-- Android 11+ package visibility, so the app can tell whether Shizuku
+         (or Sui) is installed before asking the user to connect it. -->
+    <queries>
+        <package android:name="moe.shizuku.privileged.api" />
+        <package android:name="rikka.sui" />
+    </queries>
 </manifest>

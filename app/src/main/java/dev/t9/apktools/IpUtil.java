@@ -93,6 +93,22 @@ public final class IpUtil {
         return isOnline(context);
     }
 
+    /**
+     * Wait for a usable network without requiring Airplane mode to be off. The
+     * data engine never touches Airplane mode, so a leftover Airplane state
+     * from before the run must not fail an otherwise healthy cycle.
+     */
+    public static boolean waitForOnline(Context context, long timeoutMs) {
+        long end = System.currentTimeMillis() + timeoutMs;
+        while (System.currentTimeMillis() < end) {
+            if (isOnline(context)) {
+                return true;
+            }
+            sleep(1000);
+        }
+        return isOnline(context);
+    }
+
     private static boolean isIp(String value) {
         if (value == null) {
             return false;
@@ -101,10 +117,14 @@ public final class IpUtil {
         if (trimmed.length() < 3 || trimmed.length() > 45) {
             return false;
         }
-        if (!trimmed.matches("[0-9a-fA-F:.]+")) {
-            return false;
+        if (trimmed.indexOf(':') >= 0) {
+            /* IPv6: hex groups with zero-compression. Dots are not allowed, so
+               a mixed-up endpoint response cannot pass as a reading. */
+            return trimmed.matches("[0-9a-fA-F]{0,4}(:[0-9a-fA-F]{0,4})+")
+                    && !trimmed.contains(":::");
         }
-        return trimmed.contains(".") || trimmed.contains(":");
+        String quad = "(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])";
+        return trimmed.matches(quad + "(\\." + quad + "){3}");
     }
 
     private static void sleep(long millis) {

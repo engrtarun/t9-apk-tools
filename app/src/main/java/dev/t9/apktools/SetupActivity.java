@@ -25,6 +25,8 @@ import androidx.core.content.ContextCompat;
 
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
+import rikka.shizuku.Shizuku;
+
 public class SetupActivity extends AppCompatActivity {
 
     private TextView tvAccessStatus;
@@ -32,6 +34,7 @@ public class SetupActivity extends AppCompatActivity {
     private TextView tvAlarmStatus;
     private TextView tvBatteryStatus;
     private TextView tvDirectStatus;
+    private TextView tvShellStatus;
     private TextView tvStrategyHelp;
     private TextView tvOffDelay;
     private TextView tvQsX;
@@ -48,6 +51,20 @@ public class SetupActivity extends AppCompatActivity {
     private SwitchCompat switchHotspot;
 
     private boolean loading = true;
+
+    private static final int SHELL_PERMISSION_REQUEST = 2910;
+
+    private final Shizuku.OnRequestPermissionResultListener shellPermissionListener =
+            (requestCode, grantResult) -> {
+                if (requestCode != SHELL_PERMISSION_REQUEST) {
+                    return;
+                }
+                boolean granted = grantResult == PackageManager.PERMISSION_GRANTED;
+                LogStore.add(LogStore.INFO, granted
+                        ? "Shizuku grant accepted — the data engine is ready"
+                        : "Shizuku grant refused");
+                refreshStatus();
+            };
 
     private final ActivityResultLauncher<String> notificationPermission =
             registerForActivityResult(new ActivityResultContracts.RequestPermission(), granted -> {
@@ -75,6 +92,7 @@ public class SetupActivity extends AppCompatActivity {
         tvAlarmStatus = findViewById(R.id.tvAlarmStatus);
         tvBatteryStatus = findViewById(R.id.tvBatteryStatus);
         tvDirectStatus = findViewById(R.id.tvDirectStatus);
+        tvShellStatus = findViewById(R.id.tvShellStatus);
         tvStrategyHelp = findViewById(R.id.tvStrategyHelp);
         tvOffDelay = findViewById(R.id.tvOffDelay);
         tvQsX = findViewById(R.id.tvQsX);
@@ -103,6 +121,9 @@ public class SetupActivity extends AppCompatActivity {
                 break;
             case Prefs.STRATEGY_QS:
                 rgStrategy.check(R.id.rbQs);
+                break;
+            case Prefs.STRATEGY_DATA:
+                rgStrategy.check(R.id.rbData);
                 break;
             default:
                 rgStrategy.check(R.id.rbAuto);
@@ -229,6 +250,47 @@ public class SetupActivity extends AppCompatActivity {
             copyAdbCommand();
             return true;
         });
+
+        findViewById(R.id.btnConnectShizuku).setOnClickListener(v -> connectShizuku());
+    }
+
+    /** Connects the optional Shizuku helper that powers the no-Airplane data engine. */
+    private void connectShizuku() {
+        if (!ShellEngine.binderAlive()) {
+            new MaterialAlertDialogBuilder(this)
+                    .setTitle("Shizuku is not running")
+                    .setMessage("Shizuku is a small, open-source helper that lets this app run "
+                            + "two commands with the ADB identity — that is how the data engine "
+                            + "resets mobile data without Airplane mode. Install Shizuku, start it "
+                            + "once (wireless debugging works on Android 11+, or one ADB command "
+                            + "from a PC), then come back and tap CONNECT SHIZUKU.")
+                    .setNegativeButton("Later", null)
+                    .setPositiveButton("Download page", (d, w) -> {
+                        try {
+                            startActivity(new android.content.Intent(Intent.ACTION_VIEW,
+                                    android.net.Uri.parse("https://shizuku.rikka.app/download/")));
+                        } catch (Exception ignored) {
+                        }
+                    })
+                    .show();
+            return;
+        }
+        if (ShellEngine.granted()) {
+            Toast.makeText(this, "Shizuku is already granted.", Toast.LENGTH_SHORT).show();
+            refreshStatus();
+            return;
+        }
+        try {
+            if (Shizuku.shouldShowRequestPermissionRationale()) {
+                Toast.makeText(this, "T9 was denied in Shizuku. Open Shizuku and allow it "
+                        + "under Recent apps.", Toast.LENGTH_LONG).show();
+                return;
+            }
+            Shizuku.requestPermission(SHELL_PERMISSION_REQUEST);
+        } catch (Throwable t) {
+            Toast.makeText(this, "Shizuku refused: " + t.getClass().getSimpleName(),
+                    Toast.LENGTH_SHORT).show();
+        }
     }
 
     private String strategyFor(int checkedId) {
@@ -240,6 +302,9 @@ public class SetupActivity extends AppCompatActivity {
         }
         if (checkedId == R.id.rbQs) {
             return Prefs.STRATEGY_QS;
+        }
+        if (checkedId == R.id.rbData) {
+            return Prefs.STRATEGY_DATA;
         }
         return Prefs.STRATEGY_AUTO;
     }
@@ -255,9 +320,14 @@ public class SetupActivity extends AppCompatActivity {
             case Prefs.STRATEGY_QS:
                 return "Pulls down Quick Settings and taps the Airplane tile. Fast, but tile "
                         + "layout differs by OEM — calibrate the coordinates below if needed.";
+            case Prefs.STRATEGY_DATA:
+                return "Runs the mobile data reset through the Shizuku helper: the data "
+                        + "connection is torn down and re-registered, which is what makes the "
+                        + "carrier reuse or hand out a mapping. Airplane mode, Wi-Fi, and the "
+                        + "hotspot are never touched. Needs Shizuku installed, running, and granted once. Works with the screen off.";
             default:
-                return "Direct if the ADB grant exists; otherwise Quick Settings, then the "
-                        + "Settings page. Best balance for most phones.";
+                return "Uses the Shizuku data engine first if it is connected (no Airplane mode), "
+                        + "then Direct, then Quick Settings and the Settings page. Best balance for most phones.";
         }
     }
 
@@ -289,6 +359,10 @@ public class SetupActivity extends AppCompatActivity {
 
         boolean direct = ResetEngine.canWriteDirect(this);
         setPill(tvDirectStatus, direct ? "GRANTED" : "NOT GRANTED", direct ? 1 : 0);
+
+        String shell = ShellEngine.statusLabel();
+        int shellState = ShellEngine.available() ? 1 : 2;
+        setPill(tvShellStatus, shell, shellState);
     }
 
     private void setVersionLabel() {
@@ -443,6 +517,18 @@ public class SetupActivity extends AppCompatActivity {
         view.setText(text);
         view.setBackgroundResource(background);
         view.setTextColor(ContextCompat.getColor(this, foreground));
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        Shizuku.addRequestPermissionResultListener(shellPermissionListener);
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        Shizuku.removeRequestPermissionResultListener(shellPermissionListener);
     }
 
     @Override

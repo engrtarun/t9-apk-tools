@@ -1,7 +1,8 @@
 # T9 APK Tools
 
-A no-root Android utility that automates the airplane-mode toggle used to make
-a Jio hotspot session request a new public IP.
+A no-root Android utility that automates the network toggle used to make a Jio
+hotspot session request a new public IP. It can cycle Airplane mode, or reset
+mobile data through Shizuku without ever touching Airplane mode.
 
 [![Build APK & Deploy Pages](https://github.com/engrtarun/t9-apk-tools/actions/workflows/android.yml/badge.svg)](https://github.com/engrtarun/t9-apk-tools/actions/workflows/android.yml)
 [![GitHub Pages](https://img.shields.io/badge/download-GitHub%20Pages-2ea44f)](https://engrtarun.github.io/t9-apk-tools/)
@@ -16,10 +17,11 @@ a Jio hotspot session request a new public IP.
 
 ## What it is
 
-T9 APK Tools is a small sideloaded app that runs a countdown, briefly turns
-Airplane mode on and off when the countdown ends, and checks whether the public
-IP address changed. It is built for the specific routine of keeping a Jio
-hotspot session fresh without sitting next to the phone and doing it by hand.
+T9 APK Tools is a small sideloaded app that runs a countdown, then resets the
+network when it ends. It can toggle Airplane mode, or cycle mobile data through
+Shizuku without touching Airplane mode, and it checks whether the public IP
+address changed. It is built for the routine of keeping a Jio hotspot session
+fresh without sitting next to the phone and doing it by hand.
 
 It is not a VPN, a proxy, or an IP rotator with a pool of addresses. It only
 automates a toggle the user could perform manually.
@@ -56,15 +58,17 @@ a different address. See [Limitations](#limitations) and
   end of it.
 - Starts a foreground service so the reset is visible and less likely to be
   killed while it runs.
-- Toggles Airplane mode through one of three engines: Direct, Accessibility, or
-  Quick Settings. Auto mode picks the best available engine.
+- Resets the network through one of four engines: Data (Shizuku, no Airplane
+  mode), Direct, Accessibility, or Quick Settings. Auto mode picks the best
+  available engine.
 - Reads the public IP before and after the toggle using api.ipify.org, with
   icanhazip.com and ifconfig.me as fallbacks.
-- Restores Airplane mode to the state it found, usually off, including when the
-  toggle or IP check fails.
+- Restores Airplane mode to the state it found, usually off, including when an
+  Airplane toggle or the IP check fails. The Data engine leaves Airplane mode
+  untouched.
 - Re-arms the timer after a reboot.
-- Keeps local history in SQLite: the newest 120 log events on screen, 150 runs
-  in History, and 80 IP readings on the card, with clear actions.
+- Keeps local history in SQLite: the newest 120 events on screen, 150 runs in
+  History, and the newest 80 IP readings on record, with clear actions.
 - Opens History from **ALL RESETS**: every run with before → after, engine,
   duration, filters, share and clear, plus expandable log lines.
 - Recovers from a failed launch: a readable crash trace is saved and shown on
@@ -73,18 +77,49 @@ a different address. See [Limitations](#limitations) and
   experimental.
 - Shows a notification with the countdown and the result.
 
-## The three engines
+## The four engines
 
 | Engine | Requirement | Reliability | Screen state |
 | --- | --- | --- | --- |
+| Data | Shizuku helper installed, running, and granted | High on Android 11+, where `cmd phone data` exists; falls back to `svc data` on older or OEM builds. Runs two shell commands with the ADB identity; Airplane mode, Wi-Fi, and the hotspot are not touched. | Screen can be off or locked. |
 | Direct | One-time ADB grant of `android.permission.WRITE_SECURE_SETTINGS` | Highest. Writes the system setting directly. | Screen can be off or locked; some OEMs may still block the write. |
 | Accessibility | Accessibility service enabled for T9 APK Tools | High, but OEM-dependent. Opens the Airplane mode Settings page and clicks the switch. | Device must be unlocked and the screen on. |
 | Quick Settings | Accessibility service enabled for T9 APK Tools | Medium to high. Opens the Quick Settings shade and clicks the Airplane tile. Falls back to calibrated screen coordinates. | Device must be unlocked and the screen on. |
-| Auto | Direct grant, or accessibility service, or both | Uses the most reliable engine available: Direct, then Accessibility with Quick Settings before the Settings page. | Depends on the chosen engine. |
+| Auto | Shizuku, a Direct grant, accessibility, or a mix | Uses the best available path: Data when Shizuku is connected and granted, then Direct, then Quick Settings before the Settings page. | Depends on the chosen engine. |
 
-The Direct engine is the only one that can work with the screen off. It needs a
-PC once, unless you use Android's wireless debugging. The other engines need no
-PC but need an unlocked phone at reset time.
+Data and Direct can work with the screen off. Data needs the Shizuku helper
+started; Direct needs a PC once unless you use Android's wireless debugging. The
+accessibility engines need no PC but need an unlocked phone at reset time.
+
+### No-Airplane data reset (optional Shizuku)
+
+The Data engine resets the mobile data context instead of Airplane mode. With the
+ADB shell identity it runs `cmd phone data disable`, holds for the saved pause
+(4–12 seconds), then runs `cmd phone data enable`. On builds without that
+command it falls back to `/system/bin/svc data disable|enable`. Airplane mode,
+Wi-Fi, and the hotspot stay as they were, and the screen can stay locked.
+
+It needs the Shizuku helper, not root. Install it from
+[shizuku.rikka.app/download](https://shizuku.rikka.app/download/) and start it:
+
+- Android 11 and newer: start Shizuku on the phone through wireless debugging.
+  No PC is needed.
+- Android 10 and older, or if the on-device start fails: connect the phone to a
+  PC with USB debugging and run the command Shizuku shows.
+
+Then open **SETUP** → **SHIZUKU — NO AIRPLANE** → **CONNECT SHIZUKU** and allow
+T9 APK Tools. The pill changes from `NOT CONNECTED` to `GRANT NEEDED` to `READY`.
+Choose **Data reset — Shizuku, no Airplane mode** or **Auto**. If Shizuku is not
+running, the pill reads `NOT CONNECTED`, Auto skips Data, and an explicit Data
+run fails with a message instead of toggling Airplane mode.
+
+Shizuku is not root. It is a helper app that starts a shell-identity service once
+and hands this app a narrow binder; Shizuku stops when the phone reboots on a
+non-rooted device. Start it again, or use Sui/root if you want it to start at
+boot. The data toggle drops mobile data for 4–12 seconds, so hotspot clients
+that use mobile data may notice. A new IP is still not guaranteed.
+
+See [docs/SETUP.md](docs/SETUP.md#7-data-reset-optional-no-airplane-mode).
 
 ## How a reset runs
 
@@ -92,10 +127,11 @@ PC but need an unlocked phone at reset time.
    alarm.
 2. The alarm fires and the app starts its foreground service.
 3. The service reads the current public IP.
-4. The selected engine turns Airplane mode on: it writes the secure setting,
-   clicks the Settings switch, or clicks the Quick Settings tile.
-5. After a short pause, the app turns Airplane mode off and waits for
-   connectivity.
+4. The selected engine resets the network. Direct writes the Airplane setting,
+   Accessibility clicks the Settings switch, Quick Settings clicks the tile, and
+   Data switches mobile data off and on through Shizuku.
+5. After a short pause the engine restores the network — Airplane mode off, or
+   mobile data back on — and the app waits for connectivity.
 6. It reads the public IP again, compares it with the first reading, and writes
    the result to the local log.
 7. It optionally tries to restore the hotspot, then schedules the next reset if
@@ -110,9 +146,11 @@ flowchart TD
     E -->|Direct| F["Write airplane mode on"]
     E -->|Accessibility| G["Open Settings and click the switch"]
     E -->|Quick Settings| H["Open the shade and click the tile"]
-    F --> I["Restore airplane mode off"]
+    E -->|Data| M["Shizuku: mobile data off, hold, back on"]
+    F --> I["Restore the network to its original state"]
     G --> I
     H --> I
+    M --> I
     I --> J["Wait for connectivity<br/>read public IP after"]
     J --> K["Compare addresses, log, notify"]
     K --> L["Schedule the next reset"]
@@ -168,23 +206,27 @@ troubleshooting, is in [docs/SETUP.md](docs/SETUP.md).
 4. **Accessibility service.** Enable T9 APK Tools in Settings > Accessibility if
    you want the Accessibility or Quick Settings engine. This is optional if you
    use Direct.
-5. **ADB grant (optional, for Direct).** Connect the phone to a computer with
+5. **Shizuku (optional, for Data reset).** Install the Shizuku helper, start it
+   once (wireless debugging on Android 11+, or one ADB command from a PC), then
+   open **SETUP** → **CONNECT SHIZUKU** and allow T9 APK Tools. No root.
+6. **ADB grant (optional, for Direct).** Connect the phone to a computer with
    USB debugging enabled and run the grant command from
    [docs/SETUP.md](docs/SETUP.md). The grant survives reboots and app updates,
    but is lost if you uninstall the app.
 
-Auto mode uses Direct when the grant exists and falls back to Accessibility
-otherwise. You can also choose an engine explicitly.
+Auto mode uses Data when Shizuku is connected and granted, then Direct, then
+Quick Settings, then the Settings page. You can also choose an engine
+explicitly.
 
 ## Usage
 
 1. Open T9 APK Tools.
 2. Set the countdown. The default is 15 minutes.
-3. Choose Auto, Direct, Accessibility, or Quick Settings.
+3. Choose Auto, Data, Direct, Accessibility, or Quick Settings.
 4. Start the timer. The notification shows the remaining time.
 5. Leave the phone unlocked if you selected an accessibility-based engine.
-6. When the timer ends, the app toggles Airplane mode, restores it, checks the
-   IP, and logs the result.
+6. When the timer ends, the app resets the network (Airplane mode, or mobile
+   data through Shizuku), checks the IP, and logs the result.
 7. Read the **ACTIVITY** panel for the newest events. Tap **ALL RESETS** for
    History: every run with before → after, engine, duration, filters
    (new/same/failed), share and clear, plus expandable log lines.
@@ -220,8 +262,9 @@ with `apksigner`, writes `site/download/version.json`, uploads the APK as the
 Versioning:
 
 - `versionName` comes from the root [`VERSION`](VERSION) file.
-- `versionCode` comes from `GITHUB_RUN_NUMBER`.
-- A tag such as `v1.0.0` should match the contents of `VERSION`. The workflow
+- `versionCode` is derived from it, so `1.2.0` becomes `10200`. A docs-only
+  push can no longer publish a second APK under the same version name.
+- A tag such as `v1.2.0` should match the contents of `VERSION`. The workflow
   builds from the tag, not from the tag name.
 
 Release signing reads exactly these environment variables:
@@ -277,6 +320,7 @@ avoids a second toolchain for no user-visible benefit.
 │   ├── build.gradle
 │   └── src/main/
 │       ├── AndroidManifest.xml
+│       ├── aidl/dev/t9/apktools/   IShellActions contract for the Shizuku service
 │       ├── java/dev/t9/apktools/   Activities, services, receivers, utilities
 │       └── res/                    Layouts, drawables, strings, accessibility config
 ├── art/                            Project artwork
@@ -310,9 +354,14 @@ through `gradle/actions/setup-gradle`.
 - **A new public IP is not guaranteed.** Jio uses CGNAT, and the carrier
   controls address assignment. The app can prove that it toggled Airplane mode;
   it cannot force a different public address. A reset may return the same IP.
-- **The hotspot may drop.** Airplane mode turns off Wi-Fi and the hotspot. The
-  optional hotspot restore is experimental, OEM-dependent, and cannot guarantee
-  that connected clients reconnect cleanly.
+- **Data resets need a running Shizuku.** On a non-rooted phone Shizuku must be
+  started again after a reboot. `cmd phone data` is missing on some builds; the
+  app falls back to `svc data`, which is also build-dependent. The screen can
+  stay locked, and Airplane mode, Wi-Fi, and the hotspot are not touched, but
+  mobile data drops for the hold window.
+- **The hotspot may drop with Airplane mode.** The Airplane engines turn off
+  Wi-Fi and the hotspot. The optional hotspot restore is experimental,
+  OEM-dependent, and cannot guarantee that connected clients reconnect cleanly.
 - **UI automation needs an unlocked screen.** Accessibility and Quick Settings
   engines cannot operate on a locked device. The Direct engine can, subject to
   OEM restrictions.
@@ -351,7 +400,9 @@ reporting.
 
 **Does it need root?**
 No. The Direct engine needs a one-time ADB grant of
-`WRITE_SECURE_SETTINGS`. That is a development permission grant, not root.
+`WRITE_SECURE_SETTINGS`. That is a development permission grant, not root. The
+Data engine uses Shizuku, a separate helper that runs commands with the ADB
+shell identity; it is not root either.
 
 **Will I get a new public IP every time?**
 No. The app automates the airplane-mode toggle and reports whether the address
@@ -370,7 +421,8 @@ enabled. Review [docs/PRIVACY.md](docs/PRIVACY.md), and disable the service when
 you are not using it.
 
 **Can I use it without a PC?**
-Yes, with the Accessibility or Quick Settings engine. The Direct engine needs
+Yes, with the Accessibility or Quick Settings engine, or with the Data engine on
+Android 11+ (Shizuku starts through wireless debugging). The Direct engine needs
 ADB once, which can be done over USB or Android wireless debugging.
 
 **Does the screen need to stay on?**
@@ -412,6 +464,7 @@ MIT. Copyright (c) 2026 Tarun Panchal. See [LICENSE](LICENSE).
 
 - Android Open Source Project, for the platform APIs used by the app.
 - AndroidX AppCompat, AndroidX Core, and Material Components for the UI.
+- Rikka's Shizuku and Sui, for the optional no-Airplane data engine.
 - api.ipify.org, icanhazip.com, and ifconfig.me for public-IP lookup.
 - GitHub Actions and GitHub Pages for the build and download pipeline.
 - Everyone who reports device-specific behavior and tests builds on real
