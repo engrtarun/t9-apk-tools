@@ -152,12 +152,12 @@ sequenceDiagram
         IP-->>RE: before address, or null
     end
 
-    RE->>E: toggle to the opposite of the current state
-    E->>OS: write setting / click switch / tap tile
+    RE->>E: reset the network (Airplane engines toggle; Data cycles data)
+    E->>OS: write setting / click switch / tap tile / run shell command
     OS-->>E: state readback
     RE->>RE: sleep offDelaySec (2-12 s)
     RE->>E: restore the initial state
-    E->>OS: write setting / click switch / tap tile
+    E->>OS: write setting / click switch / tap tile / run shell command
 
     alt Restore failed
         RE->>OS: safety restore (Direct, then Settings UI)

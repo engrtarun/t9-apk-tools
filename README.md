@@ -205,7 +205,7 @@ troubleshooting, is in [docs/SETUP.md](docs/SETUP.md).
    your OEM, so the alarm and foreground service are not killed.
 4. **Accessibility service.** Enable T9 APK Tools in Settings > Accessibility if
    you want the Accessibility or Quick Settings engine. This is optional if you
-   use Direct.
+   use Direct or Data.
 5. **Shizuku (optional, for Data reset).** Install the Shizuku helper, start it
    once (wireless debugging on Android 11+, or one ADB command from a PC), then
    open **SETUP** → **CONNECT SHIZUKU** and allow T9 APK Tools. No root.
