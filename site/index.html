@@ -309,7 +309,7 @@
                   <span class="prompt" aria-hidden="true">$</span><code id="adb-grant">adb shell pm grant dev.t9.apktools android.permission.WRITE_SECURE_SETTINGS</code>
                 </div>
               </div>
-              <p class="step-note">The grant survives reboots and app updates. It is removed when you uninstall the app. No computer? Install the <a href="https://shizuku.rikka.app/download/">Shizuku helper</a>, start it, then use <strong>SETUP → CONNECT SHIZUKU</strong> for the no-Airplane Data engine. Or enable <strong>Settings → Accessibility → T9 Network Reset</strong> for the UI engines, which need the screen on and unlocked.</p>
+              <p class="step-note">The grant survives reboots and app updates. It is removed when you uninstall the app. No computer? Install the <a href="#shizuku">Shizuku helper</a>, start it, then use <strong>SETUP → CONNECT SHIZUKU</strong> for the no-Airplane Data engine. Or enable <strong>Settings → Accessibility → T9 Network Reset</strong> for the UI engines, which need the screen on and unlocked.</p>
             </div>
           </li>
           <li class="setup-step">
@@ -321,6 +321,46 @@
             </div>
           </li>
         </ol>
+        <aside class="helper" id="shizuku" aria-labelledby="helper-title" data-reveal>
+          <div class="helper-head">
+            <h3 id="helper-title">Shizuku helper</h3>
+            <span class="helper-badge">Optional · no root</span>
+          </div>
+          <div class="helper-body">
+            <p class="helper-lede">Shizuku is a small open-source helper that lets an app run commands with the ADB shell identity. T9 uses it for one thing only: switching mobile data off and on. That is why the Data engine never touches Airplane mode, Wi-Fi, or the hotspot. It is not root, and it is not required — the other engines work without it.</p>
+            <div class="helper-actions">
+              <a class="btn btn--lime" href="https://play.google.com/store/apps/details?id=moe.shizuku.privileged.api" target="_blank" rel="noopener noreferrer">
+                <svg class="icon" aria-hidden="true" focusable="false"><use href="#i-download"/></svg>
+                <span>Get Shizuku on Play Store</span>
+                <span class="sr-only"> (opens in a new tab)</span>
+              </a>
+              <a class="btn btn--ghost" href="https://shizuku.rikka.app/download/" target="_blank" rel="noopener noreferrer">
+                <span>Official APK / website</span>
+                <svg class="icon" aria-hidden="true" focusable="false"><use href="#i-external"/></svg>
+                <span class="sr-only"> (opens in a new tab)</span>
+              </a>
+            </div>
+            <ol class="helper-steps">
+              <li>
+                <span class="helper-no" aria-hidden="true">01</span>
+                <div><h4>Install and open Shizuku</h4><p>The Play Store build and the signed APK on shizuku.rikka.app are the same app. Pick either one.</p></div>
+              </li>
+              <li>
+                <span class="helper-no" aria-hidden="true">02</span>
+                <div><h4>Turn on Wireless debugging</h4><p><strong>Settings → About phone</strong> → tap <strong>Build number</strong> seven times → <strong>Developer options</strong> → <strong>Wireless debugging</strong>. Android 11 or newer, and the phone must be on a Wi-Fi network for the pairing step.</p></div>
+              </li>
+              <li>
+                <span class="helper-no" aria-hidden="true">03</span>
+                <div><h4>Start Shizuku</h4><p>Open Shizuku, tap <strong>Start</strong>, allow its notification, then approve the Wireless debugging pairing prompt.</p></div>
+              </li>
+              <li>
+                <span class="helper-no" aria-hidden="true">04</span>
+                <div><h4>Grant T9 once</h4><p>Open T9 APK Tools → <strong>SETUP → CONNECT SHIZUKU → Allow</strong>. Choose the <strong>Data</strong> engine, or leave <strong>Auto</strong> on.</p></div>
+              </li>
+            </ol>
+            <p class="helper-note">Shizuku stops after a reboot. Start it again — a few seconds — then use the app normally. On Android 10 and older it needs a one-time start from a computer over ADB; on Android 11+ the whole flow runs on the phone. Without Shizuku, T9 simply falls back to whichever engine you granted.</p>
+          </div>
+        </aside>
       </div>
     </section>
 
@@ -410,6 +450,7 @@
         </div>
         <div class="faq-list">
           <details class="faq-item" open><summary><span class="faq-question">Does it need root?</span><span class="faq-icon" aria-hidden="true"></span></summary><div class="faq-answer"><p>No. The Direct engine needs a one-time ADB grant of <code>WRITE_SECURE_SETTINGS</code>, which is a development permission grant, not root. The Data engine uses Shizuku, a separate helper that runs commands with the ADB shell identity, not root. The Accessibility engine needs the accessibility service enabled, nothing more.</p></div></details>
+          <details class="faq-item"><summary><span class="faq-question">Where do I download Shizuku?</span><span class="faq-icon" aria-hidden="true"></span></summary><div class="faq-answer"><p>From the Play Store (<a href="https://play.google.com/store/apps/details?id=moe.shizuku.privileged.api" target="_blank" rel="noopener noreferrer">moe.shizuku.privileged.api</a>) or the official site, <a href="https://shizuku.rikka.app/download/" target="_blank" rel="noopener noreferrer">shizuku.rikka.app/download</a>. Both are the same open-source app. It is a separate helper, not part of T9, and it is optional — see the <a href="#shizuku">setup steps</a>.</p></div></details>
           <details class="faq-item"><summary><span class="faq-question">Why native Java instead of React Native?</span><span class="faq-icon" aria-hidden="true"></span></summary><div class="faq-answer"><p>The core is an Android <code>AccessibilityService</code>: a system-bound service with a manifest declaration, a lifecycle controlled by Android, and direct access to accessibility node trees. JavaScript cannot implement it. React Native would add a bridge and tens of megabytes while still needing the same native service. Native Java keeps the APK small and the permission behavior explicit.</p></div></details>
           <details class="faq-item"><summary><span class="faq-question">Will the IP change every time?</span><span class="faq-icon" aria-hidden="true"></span></summary><div class="faq-answer"><p>No. The carrier controls CGNAT assignment. The app automates the toggle and reports whether the address changed. CGNAT may hand back the same address; retry or toggle data off/on.</p></div></details>
           <details class="faq-item"><summary><span class="faq-question">What happens to my hotspot?</span><span class="faq-icon" aria-hidden="true"></span></summary><div class="faq-answer"><p>Airplane mode turns it off. The optional hotspot restore is experimental and cannot guarantee that clients reconnect cleanly. You may need to turn the hotspot back on manually. The Data engine does not touch the hotspot at all; only mobile data drops for a few seconds.</p></div></details>
@@ -494,6 +535,7 @@
           <ul>
             <li><a href="#how-it-works">How it works</a></li>
             <li><a href="#setup">Setup</a></li>
+            <li><a href="#shizuku">Shizuku helper</a></li>
             <li><a href="#history">History</a></li>
             <li><a href="#limits">Limits</a></li>
             <li><a href="#faq">FAQ</a></li>
