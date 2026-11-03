@@ -338,10 +338,10 @@ through `gradle/actions/setup-gradle`.
 ## Privacy and security
 
 T9 APK Tools has no accounts, analytics, ads, or crash reporting. Its only
-network calls are to the three public-IP endpoints. Logs stay on the device,
-limited to the last 120 entries, and can be cleared from the app. Accessibility
-window data is inspected on-device only while a reset runs and is never stored
-or transmitted.
+network calls are to the three public-IP endpoints. History stays on the device
+in a small SQLite database: the newest 300 log events, 150 runs, and 80 IP
+readings, each with a clear action. Accessibility window data is inspected
+on-device only while a reset runs and is never stored or transmitted.
 
 Read [docs/PRIVACY.md](docs/PRIVACY.md) for the full data-handling note and
 [SECURITY.md](SECURITY.md) for the signing-key caveat and private vulnerability

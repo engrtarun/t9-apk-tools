@@ -406,8 +406,8 @@ After a run, check:
   and after addresses, and any error;
 - **SETUP** status pills, especially if the run says an engine is missing.
 
-The app stores the last 120 log entries. The main screen shows the newest 10;
-**CLEAR** removes the whole local log.
+The app keeps up to 300 log events. The ACTIVITY panel shows the newest 120 and
+the main screen the newest 10. **CLEAR** removes the stored events.
 
 A successful reset does not imply a new IP. If both addresses are present and
 equal, the message is `Reset done. IP stayed … — the carrier may hold the

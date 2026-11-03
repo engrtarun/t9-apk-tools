@@ -14,7 +14,7 @@ guaranteed.** The carrier decides whether a reconnect gets a different address.
 - Native Java 17, no root, no Play Store listing
 - Direct, Accessibility, and Quick Settings engines
 - Foreground service, exact alarm, boot receiver
-- Local log of the last 120 entries
+- Local SQLite history: newest 300 log events, 150 runs, 80 IP readings
 
 ## The constraint: no public airplane-mode API
 
